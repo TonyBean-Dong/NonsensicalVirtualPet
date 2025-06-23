@@ -1,51 +1,25 @@
-﻿using System;
-using NonsensicalKit.Core;
+﻿using NonsensicalKit.Core;
 using NonsensicalKit.Windows.Hook;
-using NonsensicalKit.Windows.Tray;
-using NonsensicalKit.Windows.Window;
 using UnityEngine;
 
 public class Live2DManager : NonsensicalMono
 {
     [SerializeField] private Live2DController m_live2D;
+    [SerializeField] private bool m_initShow;
 
     private bool _isDown;
     private bool _checkDown;
     private int _state;
-    private MouseHooker _mouseHooker;
-    private KeyboardHooker _keyboardHooker;
-    private bool _closeFlag;
-
-    private TrayIconModifier _tray;
 
     private void Awake()
     {
-        Application.targetFrameRate = 30;
-
-        WindowModifier.TransparentWindow();
-
-        _tray = new TrayIconModifier("NonsensicalVirtualPet", Application.streamingAssetsPath + "/icon.png");
-        TrayIconMenuInfo[] menus = new TrayIconMenuInfo[2];
-        menus[0] = new TrayIconMenuInfo() { Path = "显示-隐藏", Callback = ChangedState };
-        menus[1] = new TrayIconMenuInfo() { Path = "关闭", Callback = CloseApplication };
-        _tray.SetMenu(menus);
-
-        _mouseHooker = new MouseHooker();
-        _mouseHooker.MouseEvent += OnMouseEvent;
-        _mouseHooker.StartHook();
-
-        _keyboardHooker = new KeyboardHooker();
-        _keyboardHooker.KeyboardEvent += OnKeyboardEvent;
-        _keyboardHooker.StartHook();
+        Subscribe("ChangedLive2DState", ChangedState);
+        Subscribe<HookMouseMessage>("MouseEvent", OnMouseEvent);
+        _state = m_initShow ? 0 : 2;
     }
 
     private void Update()
     {
-        if (_closeFlag)
-        {
-            Application.Quit();
-        }
-
         if (_checkDown == true)
         {
             _checkDown = false;
@@ -104,25 +78,10 @@ public class Live2DManager : NonsensicalMono
         }
     }
 
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-        _tray.Dispose();
-        _mouseHooker.StopHook();
-        _keyboardHooker.StopHook();
-    }
-
-
-    private void ChangedState(object sender, EventArgs e)
+    private void ChangedState()
     {
         _state++;
     }
-
-    private void CloseApplication(object sender, EventArgs e)
-    {
-        _closeFlag = true;
-    }
-
 
     private void OnMouseEvent(HookMouseMessage message)
     {
@@ -141,26 +100,6 @@ public class Live2DManager : NonsensicalMono
             {
                 _isDown = false;
                 break;
-            }
-        }
-    }
-
-    private void OnKeyboardEvent(HookKeyboardMessage message, VirtualKeys key)
-    {
-        if (message == HookKeyboardMessage.WM_KEYDOWN)
-        {
-            switch (key)
-            {
-                case VirtualKeys.F9:
-                {
-                    _state++;
-                    break;
-                }
-                case VirtualKeys.F10:
-                {
-                    _closeFlag = true;
-                    break;
-                }
             }
         }
     }

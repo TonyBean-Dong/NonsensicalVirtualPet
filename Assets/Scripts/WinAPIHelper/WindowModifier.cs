@@ -89,7 +89,6 @@ namespace NonsensicalKit.Windows.Window
             }
         }
 
-
         /// <summary>
         /// 最大化   
         /// </summary>

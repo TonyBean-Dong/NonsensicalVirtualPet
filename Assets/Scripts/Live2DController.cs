@@ -1,5 +1,4 @@
-﻿using System;
-using Live2D.Cubism.Core;
+﻿using Live2D.Cubism.Core;
 using Live2D.Cubism.Rendering;
 using UnityEngine;
 
