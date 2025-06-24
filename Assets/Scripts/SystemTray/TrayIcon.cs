@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using AOT;
 using UnityEngine;
 
 namespace Utils
@@ -179,7 +180,7 @@ namespace Utils
 
             IntPtr hMenu = WinAPI.CreatePopupMenu();
             if (hMenu == IntPtr.Zero) return;
-            
+
             Dictionary<string, MultiLevelMenuItem> items = new();
             Queue<MultiLevelMenuItem> menus = new();
             foreach (var info in ActionMappings)
@@ -201,7 +202,7 @@ namespace Utils
                         crt.Name = p;
                         items.Add(crtPath, crt);
                     }
-            
+
                     if (parent == null)
                     {
                         if (menus.Contains(crt) == false)
@@ -214,10 +215,10 @@ namespace Utils
                         crt.Parent = parent;
                         parent.Children.Add(crt);
                     }
-            
+
                     parent = crt;
                 }
-            
+
                 if (parent == null)
                 {
                     Debug.LogError($"Wrong Path: {info.Value}");
@@ -227,19 +228,19 @@ namespace Utils
                     parent.ID = info.Key;
                 }
             }
-            
+
             while (menus.Count > 0)
             {
                 var crt = menus.Dequeue();
-            
+
                 var parent = crt.Parent?.MenuID ?? hMenu;
-            
+
                 if (crt.Name == SEPARATOR)
                 {
                     WinAPI.AppendMenu(parent, MF_SEPARATOR, 0, null);
                     continue;
                 }
-            
+
                 if (crt.Children.Count > 0)
                 {
                     IntPtr subMenu = WinAPI.CreatePopupMenu();
@@ -248,11 +249,12 @@ namespace Utils
                     {
                         menus.Enqueue(child);
                     }
-                    WinAPI.AppendMenu(parent,  MF_STRING|MF_POPUP, (uint)subMenu, crt.Name);
+
+                    WinAPI.AppendMenu(parent, MF_STRING | MF_POPUP, (uint)subMenu, crt.Name);
                 }
                 else
                 {
-                    WinAPI.AppendMenu(parent,  MF_STRING, crt.ID, crt.Name);
+                    WinAPI.AppendMenu(parent, MF_STRING, crt.ID, crt.Name);
                 }
             }
 
@@ -269,6 +271,7 @@ namespace Utils
             WinAPI.DestroyMenu(hMenu);
         }
 
+        [MonoPInvokeCallback(typeof(WndProcDelegate))]
         private static IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
         {
             switch (msg)

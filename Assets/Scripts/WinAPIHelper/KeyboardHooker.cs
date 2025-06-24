@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace NonsensicalKit.Windows.Hook
 {
@@ -12,17 +13,19 @@ namespace NonsensicalKit.Windows.Hook
     {
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-        private LowLevelKeyboardProc _proc;
+        private readonly LowLevelKeyboardProc _proc;
         private IntPtr _hookID = IntPtr.Zero;
 
         public Action<HookKeyboardMessage, VirtualKeys> KeyboardEvent;
-        private HashSet<VirtualKeys> _blockList = new HashSet<VirtualKeys>();
+        private readonly HashSet<VirtualKeys> _blockList = new();
 
         private bool _hooking;
 
         public KeyboardHooker()
         {
             _proc = HookCallback;
+
+            Application.quitting += StopHook;
         }
 
         ~KeyboardHooker()

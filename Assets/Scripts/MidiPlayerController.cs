@@ -7,9 +7,16 @@ using NonsensicalKit.Core;
 using NonsensicalKit.Core.Log;
 using NonsensicalKit.Tools.ObjectPool;
 using NonsensicalKit.Windows.Hook;
+using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
+
+public enum MidiMusicEvent
+{
+    ChangeMidiMusicState = 1300,
+    ChangeMidiMusicSample,
+}
 
 public sealed class MidiPlayerController : NonsensicalMono
 {
@@ -32,7 +39,6 @@ public sealed class MidiPlayerController : NonsensicalMono
     private bool _loading = false;
     private int _crtSample = 0;
 
-
     [Button]
     private void UpdatePath()
     {
@@ -41,7 +47,7 @@ public sealed class MidiPlayerController : NonsensicalMono
         m_midiFilesPath = new string[m_midiFiles.Length];
         for (int i = 0; i < m_sfzFiles.Length; i++)
         {
-            var path =UnityEditor. AssetDatabase.GetAssetPath(m_sfzFiles[i]);
+            var path = AssetDatabase.GetAssetPath(m_sfzFiles[i]);
             var prefix = "Assets/StreamingAssets/";
             if (path.StartsWith(prefix))
             {
@@ -55,7 +61,7 @@ public sealed class MidiPlayerController : NonsensicalMono
 
         for (int i = 0; i < m_midiFiles.Length; i++)
         {
-            var path = UnityEditor.AssetDatabase.GetAssetPath(m_midiFiles[i]);
+            var path = AssetDatabase.GetAssetPath(m_midiFiles[i]);
             var prefix = "Assets/StreamingAssets/";
             if (path.StartsWith(prefix))
             {
@@ -72,9 +78,9 @@ public sealed class MidiPlayerController : NonsensicalMono
     private void Awake()
     {
         _players = new AudioSource[m_midiFiles.Length][];
-        Subscribe("ChangedMidiMusicState", OnSwitchMidiMusic);
-        Subscribe("ChangedMidiMusicSample", OnChangeMidiMusicSample);
-        Subscribe<HookKeyboardMessage, VirtualKeys>("KeyBoardEvent", this.OnKeyboardEvent);
+        Subscribe(MidiMusicEvent.ChangeMidiMusicState, OnSwitchMidiMusic);
+        Subscribe(MidiMusicEvent.ChangeMidiMusicSample, OnChangeMidiMusicSample);
+        Subscribe<KeyEvent>(WindowsEvent.KeyBoardEvent, this.OnKeyboardEvent);
 
         var go = new GameObject("Source");
         var source = go.AddComponent<AudioSource>();
@@ -118,11 +124,11 @@ public sealed class MidiPlayerController : NonsensicalMono
         }
     }
 
-    private void OnKeyboardEvent(HookKeyboardMessage message, VirtualKeys key)
+    private void OnKeyboardEvent(KeyEvent @event)
     {
-        if (message == HookKeyboardMessage.WM_KEYDOWN)
+        if (@event.KeyboardMessage == HookKeyboardMessage.WM_KEYDOWN)
         {
-            switch (key)
+            switch (@event.Key)
             {
                 case VirtualKeys.NUMPAD0: Switch(0); break;
                 case VirtualKeys.NUMPAD1: Switch(1); break;
@@ -204,7 +210,6 @@ public sealed class MidiPlayerController : NonsensicalMono
                 _players[index][i] = newSource;
             }
         }
-
     }
 
     private void StopMidi(int index)

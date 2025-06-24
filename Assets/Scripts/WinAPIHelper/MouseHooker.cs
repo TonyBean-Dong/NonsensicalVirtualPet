@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
-using NonsensicalKit.Windows.Hook;
+using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace NonsensicalKit.Windows.Hook
@@ -25,6 +26,8 @@ namespace NonsensicalKit.Windows.Hook
         public MouseHooker()
         {
             _proc = HookCallback;
+            
+            Application.quitting += StopHook;
         }
 
         ~MouseHooker()
@@ -76,11 +79,10 @@ namespace NonsensicalKit.Windows.Hook
 
         private IntPtr SetHook(LowLevelMouseProc proc)
         {
-            using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule)
-            {
-                return SetWindowsHookEx((int)HookID.WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
-            }
+            //IL2CPP不支持Process
+            using Process curProcess = Process.GetCurrentProcess();
+            using ProcessModule curModule = curProcess.MainModule;
+            return SetWindowsHookEx((int)HookID.WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
         }
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)

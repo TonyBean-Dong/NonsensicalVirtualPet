@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 403ae2dd693bb1d4b924f6b8d206b053, type: 3}
   m_Name: Koharu.fadeMotionList
   m_EditorClassIdentifier: 
-  MotionInstanceIds: f23000002e3100001c310000323a0000743a00005c3a0000be6f0000926f00009a6f0000d0930000d8930000fc930000ca930000d2930000f6930000aa8b0000b28b0000d68b0000
+  MotionInstanceIds: f23000002e3100001c310000323a0000743a00005c3a0000be6f0000926f00009a6f0000d0930000d8930000fc930000ca930000d2930000f6930000aa8b0000b28b0000d68b0000a2940000aa940000ce940000
   CubismFadeMotionObjects:
   - {fileID: 11400000, guid: 4b1bccbeb4006f44891835fc56c0d852, type: 2}
   - {fileID: 11400000, guid: fd22a94773b561d449e0a2cd7477e3a0, type: 2}
@@ -23,6 +23,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4b1bccbeb4006f44891835fc56c0d852, type: 2}
   - {fileID: 11400000, guid: fd22a94773b561d449e0a2cd7477e3a0, type: 2}
   - {fileID: 11400000, guid: afba1d2fa6787a7469949eb247677c1a, type: 2}
+  - {fileID: 11400000, guid: fd22a94773b561d449e0a2cd7477e3a0, type: 2}
+  - {fileID: 11400000, guid: afba1d2fa6787a7469949eb247677c1a, type: 2}
+  - {fileID: 11400000, guid: 4b1bccbeb4006f44891835fc56c0d852, type: 2}
   - {fileID: 11400000, guid: fd22a94773b561d449e0a2cd7477e3a0, type: 2}
   - {fileID: 11400000, guid: afba1d2fa6787a7469949eb247677c1a, type: 2}
   - {fileID: 11400000, guid: 4b1bccbeb4006f44891835fc56c0d852, type: 2}

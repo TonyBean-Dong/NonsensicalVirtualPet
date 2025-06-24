@@ -2,6 +2,12 @@
 using NonsensicalKit.Windows.Hook;
 using UnityEngine;
 
+[AggregatorEnum]
+public enum Live2DEvent
+{
+    ChangedLive2DState = 1200,
+}
+
 public class Live2DManager : NonsensicalMono
 {
     [SerializeField] private Live2DController m_live2D;
@@ -13,8 +19,8 @@ public class Live2DManager : NonsensicalMono
 
     private void Awake()
     {
-        Subscribe("ChangedLive2DState", ChangedState);
-        Subscribe<HookMouseMessage>("MouseEvent", OnMouseEvent);
+        Subscribe(Live2DEvent.ChangedLive2DState, ChangedState);
+        Subscribe<MouseEvent>(WindowsEvent.MouseEvent, OnMouseEvent);
         _state = m_initShow ? 0 : 2;
     }
 
@@ -83,9 +89,9 @@ public class Live2DManager : NonsensicalMono
         _state++;
     }
 
-    private void OnMouseEvent(HookMouseMessage message)
+    private void OnMouseEvent(MouseEvent @event)
     {
-        switch (message)
+        switch (@event.MouseMessage)
         {
             case HookMouseMessage.WM_RBUTTONDOWN:
             {

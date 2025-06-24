@@ -8,6 +8,14 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
+public enum PianoEvent
+{
+    ChangePianoKeyState = 1200,
+    ChangePianoModifySwitch,
+    ChangePianoSample,
+}
+
 public class PianoController : NonsensicalMono
 {
     [SerializeField] private SfizzPlayer m_player;
@@ -18,9 +26,11 @@ public class PianoController : NonsensicalMono
 
     [SerializeField] private Object[] m_sfzFiles;
     [SerializeField] private string[] m_sfzFilesPath;
+    [SerializeField] private int m_startSample;
 
     private readonly List<VirtualKeys> _waitPress = new List<VirtualKeys>();
     private readonly List<VirtualKeys> _waitRelease = new List<VirtualKeys>();
+
     private bool _sustainPedalState;
     private bool _sustainPedalLastState;
 
@@ -110,21 +120,16 @@ public class PianoController : NonsensicalMono
 #endif
     }
 
-    [Button]
-    private void Test()
-    {
-        OnChangeSample();
-    }
-    
     private void Awake()
     {
         _playing = m_initPlay;
+        _sfzIndex = m_startSample;
 
         ChangeSample(0);
-        Subscribe("ChangedPianoModifySwitch", OnSwitchModifier);
-        Subscribe("ChangedPianoKeyState", OnChangedState);
-        Subscribe("ChangedPianoSample", OnChangeSample);
-        Subscribe<HookKeyboardMessage, VirtualKeys>("KeyBoardEvent", this.OnKeyboardEvent);
+        Subscribe(PianoEvent.ChangePianoModifySwitch, OnSwitchModifier);
+        Subscribe(PianoEvent.ChangePianoKeyState, OnChangedState);
+        Subscribe(PianoEvent.ChangePianoSample, OnChangeSample);
+        Subscribe<KeyEvent>(WindowsEvent.KeyBoardEvent, this.OnKeyboardEvent);
     }
 
     private void ChangeModifier(int change)
@@ -142,9 +147,10 @@ public class PianoController : NonsensicalMono
         }
     }
 
-    private void OnKeyboardEvent(HookKeyboardMessage message, VirtualKeys key)
+    private void OnKeyboardEvent(KeyEvent @event)
     {
-        switch (message)
+        var key = @event.Key;
+        switch (@event.KeyboardMessage)
         {
             case HookKeyboardMessage.WM_KEYDOWN:
             {
@@ -158,7 +164,7 @@ public class PianoController : NonsensicalMono
                     case VirtualKeys.SPACE: _sustainPedalState = true; break;
                 }
 
-                if (_playing&&_keyMap.ContainsKey(key))
+                if (_playing && _keyMap.ContainsKey(key))
                 {
                     _waitPress.Add(key);
                 }
@@ -174,7 +180,7 @@ public class PianoController : NonsensicalMono
                     case VirtualKeys.SPACE: _sustainPedalState = false; break;
                 }
 
-                if (_playing&&_keyMap.ContainsKey(key))
+                if (_playing && _keyMap.ContainsKey(key))
                 {
                     _waitRelease.Add(key);
                 }
