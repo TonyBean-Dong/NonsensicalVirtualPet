@@ -1,4 +1,6 @@
-﻿using NonsensicalKit.Core;
+﻿using System;
+using System.Collections.Generic;
+using NonsensicalKit.Core;
 using NonsensicalKit.Windows.Hook;
 using UnityEngine;
 
@@ -10,7 +12,7 @@ public enum Live2DEvent
 
 public class Live2DManager : NonsensicalMono
 {
-    [SerializeField] private Live2DController m_live2D;
+    [SerializeField] private GameObject m_live2D;
     [SerializeField] private bool m_initShow;
 
     private bool _isDown;
@@ -21,7 +23,20 @@ public class Live2DManager : NonsensicalMono
     {
         Subscribe(Live2DEvent.ChangedLive2DState, ChangedState);
         Subscribe<MouseEvent>(WindowsEvent.MouseEvent, OnMouseEvent);
+        IOCC.Register("TrayMenu", GetMenu);
         _state = m_initShow ? 0 : 2;
+    }
+
+    private List<(string, Action)> GetMenu()
+    {
+        string nextState = _state switch
+        {
+            0 => "常规显示",
+            1 => "一直显示",
+            2 => "隐藏",
+            _ => "未知状态"
+        };
+        return new List<(string, Action)>() { ($@"Live2D\切换状态({nextState})(F9)", ChangedState) };
     }
 
     private void Update()

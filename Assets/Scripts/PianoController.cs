@@ -1,17 +1,21 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using F1yingBanana.SfizzUnity;
 using NaughtyAttributes;
 using NonsensicalKit.Core;
 using NonsensicalKit.Windows.Hook;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+[AggregatorEnum]
 public enum PianoEvent
 {
-    ChangePianoKeyState = 1200,
+    ChangePianoKeyState = 1300,
     ChangePianoModifySwitch,
     ChangePianoSample,
 }
@@ -125,11 +129,23 @@ public class PianoController : NonsensicalMono
         _playing = m_initPlay;
         _sfzIndex = m_startSample;
 
-        ChangeSample(0);
+        ChangeSample(0).Forget();
         Subscribe(PianoEvent.ChangePianoModifySwitch, OnSwitchModifier);
         Subscribe(PianoEvent.ChangePianoKeyState, OnChangedState);
         Subscribe(PianoEvent.ChangePianoSample, OnChangeSample);
         Subscribe<KeyEvent>(WindowsEvent.KeyBoardEvent, this.OnKeyboardEvent);
+        IOCC.Register("TrayMenu", GetMenu);
+    }
+
+    private List<(string, Action)> GetMenu()
+    {
+        var menu = new List<(string, Action)>()
+        {
+            ($"钢琴按键\\切换状态({(_playing ? "启用中" : "禁用中")})(F6)", OnChangedState),
+            ($"钢琴按键\\切换变调状态({(_canModify ? "变调启用中" : "变调禁用中")})", OnSwitchModifier),
+            ($"钢琴按键\\采样切换({_sfzIndex + 1})", OnChangeSample),
+        };
+        return menu;
     }
 
     private void ChangeModifier(int change)
@@ -251,14 +267,15 @@ public class PianoController : NonsensicalMono
             _sfzIndex = 0;
         }
 
-        ChangeSample(_sfzIndex);
+        ChangeSample(_sfzIndex).Forget();
     }
 
-    private void ChangeSample(int index)
+    private async UniTaskVoid ChangeSample(int index)
     {
         if (m_player.Loading) return;
         var path = Path.Combine(Application.streamingAssetsPath, m_sfzFilesPath[index]);
-        if (!m_player.Sfizz.LoadFile(path))
+        bool result = await m_player.LoadFileAsync(path);
+        if (!result)
         {
             Debug.LogWarning($"Sfz not found at the given path: {path}, player will remain silent.");
         }

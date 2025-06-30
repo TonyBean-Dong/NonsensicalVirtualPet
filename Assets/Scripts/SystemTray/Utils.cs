@@ -24,7 +24,7 @@ namespace Utils
 
             if (actions == null)
                 return;
-
+            OnLeftClick = null;
             foreach (var (label, callback) in actions)
             {
                 if (label == LEFT_CLICK)

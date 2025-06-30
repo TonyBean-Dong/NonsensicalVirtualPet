@@ -11,7 +11,6 @@ using Application = UnityEngine.Application;
 using UnityEditor;
 #endif
 
-
 [AggregatorEnum]
 public enum WindowsEvent
 {
@@ -56,19 +55,8 @@ public class WindowsHacker : NonsensicalMono
 
         WindowModifier.TransparentWindow();
 
-        var context = new List<(string, Action)>()
-        {
-            (TrayIcon.LEFT_CLICK, LeftKey),
-            ("钢琴按键\\启用/禁用(F6)", () => Publish(PianoEvent.ChangePianoKeyState)),
-            ("钢琴按键\\变调", () => Publish(PianoEvent.ChangePianoModifySwitch)),
-            ("钢琴按键\\采样切换", () => Publish(PianoEvent.ChangePianoSample)),
-            ("Midi音乐\\启用/禁用(F7)", () => Publish(MidiMusicEvent.ChangeMidiMusicState)),
-            ("Midi音乐\\采样切换(F8)", () => Publish(MidiMusicEvent.ChangeMidiMusicSample)),
-            ("Live2D\\启用/禁用(F9)", () => Publish(Live2DEvent.ChangedLive2DState)),
-            ("关闭程序(F10)", () => _closeFlag = true)
-        };
-
-        TrayIcon.Init("Nonsensical", m_iconName, m_icon, context);
+        TrayIcon.Init("Nonsensical", m_iconName, m_icon);
+        TrayIcon.GetMenuActions = GetMenu;
 
         _mouseHooker = new MouseHooker();
         _mouseHooker.MouseEvent += OnMouseEvent;
@@ -77,6 +65,19 @@ public class WindowsHacker : NonsensicalMono
         _keyboardHooker = new KeyboardHooker();
         _keyboardHooker.KeyboardEvent += OnKeyboardEvent;
         _keyboardHooker.StartHook();
+    }
+
+    private List<(string, Action)> GetMenu()
+    {
+        var v = IOCC.GetAll<List<(string, Action)>>("TrayMenu");
+        var result = new List<(string, Action)>();
+        foreach (var item in v)
+        {
+            result.AddRange(item);
+        }
+
+        result.Add(("关闭程序(F10)", () => _closeFlag = true));
+        return result;
     }
 
     private void Update()
@@ -138,11 +139,6 @@ public class WindowsHacker : NonsensicalMono
 
             Publish(WindowsEvent.KeyBoardEvent, keyEvent);
         }
-    }
-
-    private void LeftKey()
-    {
-        TrayIcon.ShowBalloonTip("Pop Up!", "You pressed Space!", TrayIcon.ToolTipIcon.Info);
     }
 
     private void OnMouseEvent(HookMouseMessage message)

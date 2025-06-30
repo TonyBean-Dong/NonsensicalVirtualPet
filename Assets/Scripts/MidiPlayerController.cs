@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using F1yingBanana.SfizzUnity;
@@ -12,9 +14,10 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
+[AggregatorEnum]
 public enum MidiMusicEvent
 {
-    ChangeMidiMusicState = 1300,
+    ChangeMidiMusicState = 1400,
     ChangeMidiMusicSample,
 }
 
@@ -86,6 +89,16 @@ public sealed class MidiPlayerController : NonsensicalMono
         var source = go.AddComponent<AudioSource>();
         source.loop = true;
         _sourcesPool = new ComponentPool<AudioSource>(source, OnNew, OnStore);
+        IOCC.Register("TrayMenu", GetMenu);
+    }
+    private List<(string, Action)> GetMenu()
+    {
+        var menu = new List<(string, Action)>()
+        {
+            ($"Midi音乐\\切换状态({(_isPlaying?"启用中":"禁用中")})(F7)",OnSwitchMidiMusic),
+            ($"Midi音乐\\采样切换({_crtSample+1})(F8)", OnChangeMidiMusicSample),
+        };
+        return menu;
     }
 
     private void OnNew(AudioSource source)
@@ -153,6 +166,7 @@ public sealed class MidiPlayerController : NonsensicalMono
     {
         if (index < 0 || index >= m_midiFilesPath.Length) return;
         if (_loading) return;
+        if (!_isPlaying) return;
 
         if (_crtIndex != index)
         {

@@ -8,6 +8,8 @@ namespace Utils
 {
     public static partial class TrayIcon
     {
+        public static Func<List<(string, Action)>> GetMenuActions;
+        
         private static bool _init = false;
         private static string windowClassName;
 
@@ -284,6 +286,10 @@ namespace Utils
                             break;
 
                         case WM_RBUTTONUP: // Right Click Tray Icon
+                            if (GetMenuActions!=null)
+                            {
+                                ProcessMenuActions(GetMenuActions());
+                            }
                             ShowContextMenu();
                             break;
                     }
