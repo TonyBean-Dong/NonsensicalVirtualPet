@@ -84,6 +84,150 @@ namespace Live2D.Cubism.Rendering
             }
         }
 
+        /// <summary>
+        /// <see cref="OverrideFlagForDrawableMultiplyColors"/> backing field.
+        /// </summary>
+        [SerializeField, HideInInspector]
+        private bool _isOverriddenDrawableMultiplyColors;
+
+        /// <summary>
+        /// Whether to override with multiply color from the model.
+        ///
+        /// This property is deprecated due to a naming change. Use <see cref="OverrideFlagForDrawableMultiplyColors"/> instead.
+        /// </summary>
+        public bool OverwriteFlagForDrawableMultiplyColors
+        {
+            get { return OverrideFlagForDrawableMultiplyColors; }
+            set { OverrideFlagForDrawableMultiplyColors = value; }
+        }
+
+        /// <summary>
+        /// Whether to override with multiply color from the model.
+        /// </summary>
+        public bool OverrideFlagForDrawableMultiplyColors
+        {
+            get { return _isOverriddenDrawableMultiplyColors; }
+            set { _isOverriddenDrawableMultiplyColors = value; }
+        }
+
+        /// <summary>
+        /// Last <see cref="OverrideFlagForDrawableMultiplyColors"/>.
+        /// </summary>
+        public bool LastIsUseUserMultiplyColor { get; set; }
+
+        /// <summary>
+        /// <see cref="OverrideFlagForDrawableScreenColors"/> backing field.
+        /// </summary>
+        [SerializeField, HideInInspector]
+        private bool _isOverriddenDrawableScreenColors;
+
+        /// <summary>
+        /// Whether to override with screen color from the model.
+        ///
+        /// This property is deprecated due to a naming change. Use <see cref="OverrideFlagForDrawableScreenColors"/> instead.
+        /// </summary>
+        public bool OverwriteFlagForDrawableScreenColors
+        {
+            get { return OverrideFlagForDrawableScreenColors; }
+            set { OverrideFlagForDrawableScreenColors = value; }
+        }
+
+        /// <summary>
+        /// Whether to override with screen color from the model.
+        /// </summary>
+        public bool OverrideFlagForDrawableScreenColors
+        {
+            get { return _isOverriddenDrawableScreenColors; }
+            set { _isOverriddenDrawableScreenColors = value; }
+        }
+
+        /// <summary>
+        /// Last <see cref="OverrideFlagForDrawableScreenColors"/>.
+        /// </summary>
+        public bool LastIsUseUserScreenColors { get; set; }
+
+        /// <summary>
+        /// <see cref="MultiplyColor"/> backing field.
+        /// </summary>
+        [SerializeField, HideInInspector]
+        private Color _multiplyColor = Color.white;
+
+        /// <summary>
+        /// Drawable Multiply Color.
+        /// </summary>
+        public Color MultiplyColor
+        {
+            get
+            {
+                if (OverrideFlagForDrawableMultiplyColors || RenderController.OverrideFlagForModelMultiplyColors)
+                {
+                    return _multiplyColor;
+                }
+
+                return Drawable.MultiplyColor;
+            }
+            set
+            {
+                // Return early if same value given.
+                if (value == _multiplyColor)
+                {
+                    return;
+                }
+
+
+                // Store value.
+                _multiplyColor = (value != null)
+                    ? value
+                    : Color.white;
+            }
+        }
+
+        /// <summary>
+        /// Last Drawable Multiply Color.
+        /// </summary>
+        public Color LastMultiplyColor { get; set; }
+
+        /// <summary>
+        /// <see cref="ScreenColor"/> backing field.
+        /// </summary>
+        [SerializeField, HideInInspector]
+        private Color _screenColor = Color.clear;
+
+        /// <summary>
+        /// Drawable Screen Color.
+        /// </summary>
+        public Color ScreenColor
+        {
+            get
+            {
+                if (OverrideFlagForDrawableScreenColors || RenderController.OverrideFlagForModelScreenColors)
+                {
+                    return _screenColor;
+                }
+
+                return Drawable.ScreenColor;
+            }
+            set
+            {
+                // Return early if same value given.
+                if (value == _screenColor)
+                {
+                    return;
+                }
+
+
+                // Store value.
+                _screenColor = (value != null)
+                    ? value
+                    : Color.black;
+            }
+        }
+
+        /// <summary>
+        /// Last Drawable Screen Color.
+        /// </summary>
+        public Color LastScreenColor { get; set; }
+
 
         /// <summary>
         /// <see cref="UnityEngine.Material"/>.
@@ -212,10 +356,21 @@ namespace Live2D.Cubism.Rendering
         {
             get
             {
+                TryInitializeMeshRenderer();
+
                 return _meshRenderer;
             }
         }
 
+        /// <summary>
+        /// <see cref="CubismDrawable"/>.
+        /// </summary>
+        private CubismDrawable Drawable { get; set; }
+
+        /// <summary>
+        /// <see cref="CubismRenderController"/>.
+        /// </summary>
+        private CubismRenderController RenderController { get; set; }
 
 
         #region Interface For CubismRenderController
@@ -457,6 +612,9 @@ namespace Live2D.Cubism.Rendering
         /// <param name="newRenderOrder">New render order.</param>
         internal void OnDrawableRenderOrderDidChange(int newRenderOrder)
         {
+            if (RenderOrder == newRenderOrder) return;
+
+
             RenderOrder = newRenderOrder;
 
 
@@ -509,9 +667,21 @@ namespace Live2D.Cubism.Rendering
         {
             MeshRenderer.GetPropertyBlock(SharedPropertyBlock);
 
+            var renderTextureIndex = newMaskProperties.Tile.RenderTextureIndex;
+
+            if (newMaskProperties.Texture.RenderTextureCount > 0 && !(renderTextureIndex < newMaskProperties.Texture.RenderTextures.Length))
+            {
+                Debug.LogError("An invalid value has been entered for `newMaskProperties.Tile.RenderTextureIndex`.\n" +
+                               $"[Details] newMaskProperties.Tile.RenderTextureIndex: {renderTextureIndex}, newMaskProperties.Texture.RenderTextureCount: {newMaskProperties.Texture.RenderTextureCount}");
+                return;
+            }
+
+            var texture = newMaskProperties.Texture.RenderTextureCount > 0
+                ? newMaskProperties.Texture.RenderTextures[renderTextureIndex]
+                : (Texture)newMaskProperties.Texture;
 
             // Write properties.
-            SharedPropertyBlock.SetTexture(CubismShaderVariables.MaskTexture, newMaskProperties.Texture);
+            SharedPropertyBlock.SetTexture(CubismShaderVariables.MaskTexture, texture);
             SharedPropertyBlock.SetVector(CubismShaderVariables.MaskTile, newMaskProperties.Tile);
             SharedPropertyBlock.SetVector(CubismShaderVariables.MaskTransform, newMaskProperties.Transform);
 
@@ -627,6 +797,57 @@ namespace Live2D.Cubism.Rendering
             SetNewVertexColors();
         }
 
+        /// <summary>
+        /// Uploads diffuse colors.
+        /// </summary>
+        public void ApplyMultiplyColor()
+        {
+            MeshRenderer.GetPropertyBlock(SharedPropertyBlock);
+
+
+            // Write property.
+            SharedPropertyBlock.SetColor(CubismShaderVariables.MultiplyColor, MultiplyColor);
+
+            MeshRenderer.SetPropertyBlock(SharedPropertyBlock);
+        }
+
+        /// <summary>
+        /// Initializes the main texture if possible.
+        /// </summary>
+        private void TryInitializeMultiplyColor()
+        {
+            LastIsUseUserMultiplyColor = false;
+
+            LastMultiplyColor = MultiplyColor;
+
+            ApplyMultiplyColor();
+        }
+
+        /// <summary>
+        /// Uploads tint colors.
+        /// </summary>
+        public void ApplyScreenColor()
+        {
+            MeshRenderer.GetPropertyBlock(SharedPropertyBlock);
+
+
+            // Write property.
+            SharedPropertyBlock.SetColor(CubismShaderVariables.ScreenColor, ScreenColor);
+
+            MeshRenderer.SetPropertyBlock(SharedPropertyBlock);
+        }
+
+        /// <summary>
+        /// Initializes the main texture if possible.
+        /// </summary>
+        private void TryInitializeScreenColor()
+        {
+            LastIsUseUserScreenColors = false;
+
+            LastScreenColor = ScreenColor;
+
+            ApplyScreenColor();
+        }
 
         /// <summary>
         /// Initializes the mesh renderer.
@@ -684,10 +905,6 @@ namespace Live2D.Cubism.Rendering
             }
 
 
-            // Create mesh for attached drawable.
-            var drawable = GetComponent<CubismDrawable>();
-
-
             if (Meshes == null)
             {
                 Meshes = new Mesh[2];
@@ -698,10 +915,10 @@ namespace Live2D.Cubism.Rendering
             {
                 var mesh = new Mesh
                 {
-                    name = drawable.name,
-                    vertices = drawable.VertexPositions,
-                    uv = drawable.VertexUvs,
-                    triangles = drawable.Indices
+                    name = Drawable.name,
+                    vertices = Drawable.VertexPositions,
+                    uv = Drawable.VertexUvs,
+                    triangles = Drawable.Indices
                 };
 
 
@@ -750,15 +967,19 @@ namespace Live2D.Cubism.Rendering
         /// <summary>
         /// Initializes components if possible.
         /// </summary>
-        public void TryInitialize()
+        public void TryInitialize(CubismRenderController renderController)
         {
+            Drawable = GetComponent<CubismDrawable>();
+            RenderController = renderController;
+
             TryInitializeMeshRenderer();
             TryInitializeMeshFilter();
 
             TryInitializeMesh();
             TryInitializeVertexColor();
             TryInitializeMainTexture();
-
+            TryInitializeMultiplyColor();
+            TryInitializeScreenColor();
 
             ApplySorting();
         }
@@ -825,12 +1046,7 @@ namespace Live2D.Cubism.Rendering
         /// </summary>
         private void ResetSwapInfoFlags()
         {
-            var swapInfo = ThisSwap;
-            swapInfo.NewVertexColors = false;
-            swapInfo.NewVertexPositions = false;
-            swapInfo.DidBecomeVisible = false;
-            swapInfo.DidBecomeInvisible = false;
-            ThisSwap = swapInfo;
+            ThisSwap = default;
         }
 
 

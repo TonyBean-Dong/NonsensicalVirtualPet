@@ -6,16 +6,6 @@
  */
 
 using Live2D.Cubism.Core;
-using Live2D.Cubism.Framework.Expression;
-using Live2D.Cubism.Framework.Motion;
-using Live2D.Cubism.Framework.MotionFade;
-using Live2D.Cubism.Framework.MouthMovement;
-using Live2D.Cubism.Framework.Pose;
-using Live2D.Cubism.Framework.HarmonicMotion;
-using Live2D.Cubism.Framework.LookAt;
-using Live2D.Cubism.Rendering;
-using Live2D.Cubism.Rendering.Masking;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,12 +18,7 @@ namespace Live2D.Cubism.Framework
         /// <summary>
         /// The action of cubism component late update.
         /// </summary>
-        private Action OnLateUpdate;
-
-        /// <summary>
-        /// The paremeter store cache.
-        /// </summary>
-        private CubismParameterStore _parameterStore;
+        private System.Action _onLateUpdate;
 
         /// <summary>
         /// Refresh delegate manager.
@@ -48,8 +33,8 @@ namespace Live2D.Cubism.Framework
                 return;
             }
 
-            // Clear delegate.
-            Delegate.RemoveAll(OnLateUpdate, null);
+            // Set the null value when refreshed UpdateController to avoid duplicated registering.
+            _onLateUpdate = null;
 
             // Set delegate.
             var components = model.GetComponents<ICubismUpdatable>();
@@ -65,17 +50,8 @@ namespace Live2D.Cubism.Framework
                 }
 #endif
 
-                OnLateUpdate += component.OnLateUpdate;
+                _onLateUpdate += component.OnLateUpdate;
             }
-
-#if UNITY_EDITOR
-            if (Application.isPlaying)
-            {
-#endif
-                _parameterStore = model.GetComponent<CubismParameterStore>();
-#if UNITY_EDITOR
-            }
-#endif
         }
 
         #region Unity Event Handling
@@ -93,20 +69,13 @@ namespace Live2D.Cubism.Framework
         /// </summary>
         private void LateUpdate()
         {
-            // Save model parameters value and parts opacity
-            if (_parameterStore != null)
-            {
-                _parameterStore.SaveParameters();
-            }
-
             // Cubism late update.
-            if(OnLateUpdate != null)
+            if(_onLateUpdate != null)
             {
-                OnLateUpdate();
+                _onLateUpdate();
             }
         }
 
         #endregion
     }
 }
-

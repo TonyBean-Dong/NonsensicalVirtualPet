@@ -17,15 +17,16 @@ namespace Utils
             return ++_id;
         }
 
-        private static void ProcessMenuActions(List<(string, Action)> actions)
+        private static void ProcessMenuActions(List<(string,int, Action)> actions)
         {
             MenuActions = new Dictionary<string, Action>();
+            MenuOrders = new Dictionary<string, int>();
             ActionMappings = new Dictionary<uint, string>();
 
             if (actions == null)
                 return;
             OnLeftClick = null;
-            foreach (var (label, callback) in actions)
+            foreach (var (label,order, callback) in actions)
             {
                 if (label == LEFT_CLICK)
                 {
@@ -35,6 +36,7 @@ namespace Utils
 
                 uint uid = GetUniqueID();
                 ActionMappings[uid] = label;
+                MenuOrders[label] = order;
                 MenuActions[label] = callback;
             }
         }

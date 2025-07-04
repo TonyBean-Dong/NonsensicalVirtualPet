@@ -6,7 +6,10 @@
  */
 
 
+using System;
 using Live2D.Cubism.Core;
+using Live2D.Cubism.Rendering;
+using Live2D.Cubism.Rendering.Masking;
 using UnityEngine;
 
 
@@ -16,7 +19,7 @@ namespace Live2D.Cubism.Framework.Physics
     /// Physics simulation controller.
     /// </summary>
     [CubismMoveOnReimportCopyComponentsOnly]
-    public class CubismPhysicsController : MonoBehaviour
+    public class CubismPhysicsController : MonoBehaviour, ICubismUpdatable
     {
         /// <summary>
         /// Simulation target rig.
@@ -38,6 +41,61 @@ namespace Live2D.Cubism.Framework.Physics
 
 
         /// <summary>
+        /// Model has update controller component.
+        /// </summary>
+        [HideInInspector]
+        public bool HasUpdateController { get; set; }
+
+
+        public int ExecutionOrder
+        {
+            get { return CubismUpdateExecutionOrder.CubismPhysicsController; }
+        }
+
+        public bool NeedsUpdateOnEditing
+        {
+            get { return false; }
+        }
+
+        public void OnLateUpdate()
+        {
+            if (!enabled)
+            {
+                return;
+            }
+
+            var deltaTime = Time.deltaTime;
+
+            // Use fixed delta time if required.
+            if (CubismPhysics.UseFixedDeltaTime)
+            {
+                deltaTime = Time.fixedDeltaTime;
+            }
+
+
+            // Evaluate rig.
+            Rig.Evaluate(deltaTime);
+        }
+
+        /// <summary>
+        /// Calculate until the physics is stable and update the model information.
+        /// </summary>
+        public void Stabilization()
+        {
+            Rig.Stabilization();
+
+            var renderController = gameObject.GetComponent<CubismRenderController>();
+            var maskController = gameObject.GetComponent<CubismMaskController>();
+
+            renderController.OnLateUpdate();
+
+            if (maskController)
+            {
+                maskController.OnLateUpdate();
+            }
+        }
+
+        /// <summary>
         /// Sets rig and initializes <see langword="this"/>.
         /// </summary>
         /// <param name="rig"></param>
@@ -47,6 +105,47 @@ namespace Live2D.Cubism.Framework.Physics
             Awake();
         }
 
+        /// <summary>
+        /// Set <see cref="CubismPhysicsOutput.AngleScale"/> to the ratio by the argument to the original value.
+        /// </summary>
+        /// <param name="subRig"></param>
+        /// <param name="ratio">Ratio to original value</param>
+        public void SetPhysicsSubRigOutputAngleScaleRatio(CubismPhysicsSubRig subRig, float ratio)
+        {
+            if (subRig == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < subRig.Output.Length; i++)
+            {
+                var original = subRig.OriginalOutput[i];
+
+                subRig.Output[i].AngleScale = Math.Max(original.AngleScale * ratio, 0);
+                subRig.Output[i].InitializeGetter();
+            }
+        }
+
+        /// <summary>
+        /// Set <see cref="CubismPhysicsOutput.IsInverted"/> whether or not to invert for the original bool value.
+        /// </summary>
+        /// <param name="subRig"></param>
+        /// <param name="isInvert">Invert the original bool value</param>
+        public void SetPhysicsSubRigOutputIsInverted(CubismPhysicsSubRig subRig, bool isInvert)
+        {
+            if (subRig == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < subRig.Output.Length; i++)
+            {
+                var original = subRig.OriginalOutput[i];
+
+                subRig.Output[i].IsInverted = isInvert ? !original.IsInverted : original.IsInverted;
+                subRig.Output[i].InitializeGetter();
+            }
+        }
 
         #region Unity Event Handling
 
@@ -78,24 +177,26 @@ namespace Live2D.Cubism.Framework.Physics
         }
 
         /// <summary>
+        /// Called by Unity.
+        /// </summary>
+        public void Start()
+        {
+            // Get cubism update controller.
+            HasUpdateController = (GetComponent<CubismUpdateController>() != null);
+        }
+
+        /// <summary>
         /// Called by Unity. Updates controller.
         /// </summary>
         /// <remarks>Must be call after animation update.</remarks>
         private void LateUpdate()
         {
-            var deltaTime = Time.deltaTime;
-
-
-            // Use fixed delta time if required.
-            if (CubismPhysics.UseFixedDeltaTime)
+            if (!HasUpdateController)
             {
-                deltaTime = Time.fixedDeltaTime;
+                OnLateUpdate();
             }
-
-
-            // Evaluate rig.
-            Rig.Evaluate(deltaTime);
         }
+
     #endregion
     }
 }

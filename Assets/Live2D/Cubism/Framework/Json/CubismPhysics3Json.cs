@@ -44,13 +44,24 @@ namespace Live2D.Cubism.Framework.Json
         {
             var instance = new CubismPhysicsRig();
 
+
+            instance.Gravity.x = Meta.EffectiveForces.Gravity.X;
+            instance.Gravity.y = Meta.EffectiveForces.Gravity.Y;
+
+            instance.Wind.x = Meta.EffectiveForces.Wind.X;
+            instance.Wind.y = Meta.EffectiveForces.Wind.Y;
+
+            instance.Fps = Meta.Fps;
+
             instance.SubRigs = new CubismPhysicsSubRig[Meta.PhysicsSettingCount];
 
+            var idNameTable = Meta.PhysicsDictionary;
 
             for (var i = 0; i < instance.SubRigs.Length; ++i)
             {
                 instance.SubRigs[i] = new CubismPhysicsSubRig
                 {
+                    Name          = idNameTable[i].Name,
                     Input         = ReadInput(PhysicsSettings[i].Input),
                     Output        = ReadOutput(PhysicsSettings[i].Output),
                     Particles     = ReadParticles(PhysicsSettings[i].Vertices),
@@ -383,13 +394,33 @@ namespace Live2D.Cubism.Framework.Json
 
 
         /// <summary>
+        /// Physics Id - Name Table Item.
+        /// </summary>
+        [Serializable]
+        public struct PhysicsDictionaryItem
+        {
+            /// <summary>
+            /// Id for internal management.
+            /// </summary>
+            [SerializeField]
+            public string Id;
+
+            /// <summary>
+            /// Physics Setting Name.
+            /// </summary>
+            [SerializeField]
+            public string Name;
+        }
+
+
+        /// <summary>
         /// Setting of physics calculation.
         /// </summary>
         [Serializable]
         public struct SerializablePhysicsSettings
         {
             /// <summary>
-            /// TODO Document.
+            /// Id for internal management.
             /// </summary>
             [SerializeField]
             public string Id;
@@ -455,6 +486,19 @@ namespace Live2D.Cubism.Framework.Json
             /// </summary>
             [SerializeField]
             public SerializableEffectiveForces EffectiveForces;
+
+            /// <summary>
+            /// [Optional] Fps of physics operations.
+            /// If the value is not set to Json, it will change according to the application's operating FPS.
+            /// </summary>
+            [SerializeField]
+            public float Fps;
+
+            /// <summary>
+            /// Physics Id - Name Table
+            /// </summary>
+            [SerializeField]
+            public PhysicsDictionaryItem[] PhysicsDictionary;
         }
 
 

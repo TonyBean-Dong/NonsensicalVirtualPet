@@ -91,12 +91,12 @@ public sealed class MidiPlayerController : NonsensicalMono
         _sourcesPool = new ComponentPool<AudioSource>(source, OnNew, OnStore);
         IOCC.Register("TrayMenu", GetMenu);
     }
-    private List<(string, Action)> GetMenu()
+    private List<(string, int,Action)> GetMenu()
     {
-        var menu = new List<(string, Action)>()
+        var menu = new List<(string, int,Action)>()
         {
-            ($"Midi音乐\\切换状态({(_isPlaying?"启用中":"禁用中")})(F7)",OnSwitchMidiMusic),
-            ($"Midi音乐\\采样切换({_crtSample+1})(F8)", OnChangeMidiMusicSample),
+            ($"Midi音乐\\切换状态({(_isPlaying?"启用中":"禁用中")})(F7)",800,OnSwitchMidiMusic),
+            ($"Midi音乐\\采样切换({_crtSample+1})(F8)", 801,OnChangeMidiMusicSample),
         };
         return menu;
     }

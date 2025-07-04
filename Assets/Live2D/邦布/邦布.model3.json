@@ -1,0 +1,26 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "邦布.moc3",
+		"Textures": [
+			"邦布.8192/texture_00.png"
+		],
+		"Physics": "邦布.physics3.json",
+		"DisplayInfo": "邦布.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

@@ -5,11 +5,8 @@ PluginImporter:
   serializedVersion: 2
   iconMap: {}
   executionOrder: {}
-  defineConstraints: []
   isPreloaded: 0
   isOverridable: 0
-  isExplicitlyReferenced: 0
-  validateReferences: 1
   platformData:
   - first:
       '': Any
@@ -21,22 +18,12 @@ PluginImporter:
         Exclude Linux: 0
         Exclude Linux64: 0
         Exclude LinuxUniversal: 0
-        Exclude OSXIntel: 0
-        Exclude OSXIntel64: 0
         Exclude OSXUniversal: 0
-        Exclude PS4: 1
         Exclude WebGL: 1
         Exclude Win: 1
         Exclude Win64: 0
         Exclude WindowsStoreApps: 1
         Exclude iOS: 1
-  - first:
-      '': Editor
-    second:
-      enabled: 0
-      settings:
-        CPU: x86_64
-        OS: Windows
   - first:
       Android: Android
     second:
@@ -47,19 +34,7 @@ PluginImporter:
       Any: 
     second:
       enabled: 0
-      settings:
-        Exclude Android: 1
-        Exclude Editor: 0
-        Exclude Linux: 0
-        Exclude Linux64: 0
-        Exclude LinuxUniversal: 0
-        Exclude OSXIntel: 0
-        Exclude OSXIntel64: 0
-        Exclude OSXUniversal: 0
-        Exclude WebGL: 1
-        Exclude Win: 1
-        Exclude Win64: 0
-        Exclude WindowsStoreApps: 1
+      settings: {}
   - first:
       Editor: Editor
     second:
@@ -77,7 +52,7 @@ PluginImporter:
   - first:
       Facebook: Win64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: AnyCPU
   - first:
@@ -91,21 +66,9 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        CPU: AnyCPU
+        CPU: x86_64
   - first:
       Standalone: LinuxUniversal
-    second:
-      enabled: 1
-      settings:
-        CPU: AnyCPU
-  - first:
-      Standalone: OSXIntel
-    second:
-      enabled: 1
-      settings:
-        CPU: AnyCPU
-  - first:
-      Standalone: OSXIntel64
     second:
       enabled: 1
       settings:

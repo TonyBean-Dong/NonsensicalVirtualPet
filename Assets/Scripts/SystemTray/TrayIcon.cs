@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using AOT;
+using NonsensicalKit.Tools;
 using UnityEngine;
 
 namespace Utils
 {
     public static partial class TrayIcon
     {
-        public static Func<List<(string, Action)>> GetMenuActions;
-        
+        public static Func<List<(string, int, Action)>> GetMenuActions;
+
         private static bool _init = false;
         private static string windowClassName;
 
@@ -18,6 +19,7 @@ namespace Utils
         private static IntPtr messageWindowHandle;
 
         private static Dictionary<string, Action> MenuActions;
+        private static Dictionary<string, int> MenuOrders;
         private static Dictionary<uint, string> ActionMappings;
         private static Action OnLeftClick;
 
@@ -30,7 +32,7 @@ namespace Utils
         /// <param name="tooltip">The string that shows up when hovering the icon</param>
         /// <param name="iconTexture">The texture for the icon (16x16 is recommend)</param>
         /// <param name="actions">List of menu items when clicking on the icon</param>
-        public static void Init(string appName, string tooltip, Texture2D iconTexture, List<(string, Action)> actions = null)
+        public static void Init(string appName, string tooltip, Texture2D iconTexture, List<(string, int, Action)> actions = null)
         {
 #if !UNITY_STANDALONE_WIN
             throw new NotImplementedException("These features are only avaliable on Windows...");
@@ -171,6 +173,7 @@ namespace Utils
             public uint ID;
             public IntPtr MenuID;
             public string Name;
+            public int Order = int.MaxValue;
             public MultiLevelMenuItem Parent;
             public List<MultiLevelMenuItem> Children = new List<MultiLevelMenuItem>();
         }
@@ -184,7 +187,7 @@ namespace Utils
             if (hMenu == IntPtr.Zero) return;
 
             Dictionary<string, MultiLevelMenuItem> items = new();
-            Queue<MultiLevelMenuItem> menus = new();
+            List<MultiLevelMenuItem> topMenus = new();
             foreach (var info in ActionMappings)
             {
                 string[] paths = info.Value.Split(MultiLevelSplitChar);
@@ -205,11 +208,16 @@ namespace Utils
                         items.Add(crtPath, crt);
                     }
 
+                    if (crt.Order > MenuOrders[info.Value])
+                    {
+                        crt.Order = MenuOrders[info.Value];
+                    }
+
                     if (parent == null)
                     {
-                        if (menus.Contains(crt) == false)
+                        if (topMenus.Contains(crt) == false)
                         {
-                            menus.Enqueue(crt);
+                            topMenus.Add(crt);
                         }
                     }
                     else
@@ -231,6 +239,14 @@ namespace Utils
                 }
             }
 
+            topMenus.Sort((a, b) => a.Order.CompareTo(b.Order));
+
+            Queue<MultiLevelMenuItem> menus = new();
+            foreach (var topMenu in topMenus)
+            {
+                menus.Enqueue(topMenu);
+            }
+
             while (menus.Count > 0)
             {
                 var crt = menus.Dequeue();
@@ -247,6 +263,7 @@ namespace Utils
                 {
                     IntPtr subMenu = WinAPI.CreatePopupMenu();
                     crt.MenuID = subMenu;
+                    crt.Children.Sort((a, b) => a.Order.CompareTo(b.Order));
                     foreach (var child in crt.Children)
                     {
                         menus.Enqueue(child);
@@ -286,10 +303,11 @@ namespace Utils
                             break;
 
                         case WM_RBUTTONUP: // Right Click Tray Icon
-                            if (GetMenuActions!=null)
+                            if (GetMenuActions != null)
                             {
                                 ProcessMenuActions(GetMenuActions());
                             }
+
                             ShowContextMenu();
                             break;
                     }

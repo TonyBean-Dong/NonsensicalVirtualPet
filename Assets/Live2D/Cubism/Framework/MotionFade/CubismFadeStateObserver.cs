@@ -141,6 +141,7 @@ namespace Live2D.Cubism.Framework.MotionFade
             }
 
             _cubismFadeMotionList = fadeController.CubismFadeMotionList;
+            _isStateTransitionFinished = false;
 
             _layerIndex = layerIndex;
             _layerWeight = (_layerIndex == 0)
@@ -158,20 +159,31 @@ namespace Live2D.Cubism.Framework.MotionFade
             }
 
             // Set playing motions end time.
-            for (var i = 0; i < _playingMotions.Count; ++i)
+            if ((_playingMotions.Count > 0) && (_playingMotions[_playingMotions.Count - 1].Motion != null))
             {
-                var motion = _playingMotions[i];
+                var motion = _playingMotions[_playingMotions.Count - 1];
 
-                if (motion.Motion == null)
+                var time = Time.time;
+
+                var newEndTime = time + motion.Motion.FadeOutTime;
+
+                if (motion.EndTime < 0.0f || newEndTime < motion.EndTime)
                 {
-                    continue;
+                    motion.EndTime = newEndTime;
                 }
 
-                var newEndTime = Time.time + motion.Motion.FadeOutTime;
+                while (motion.IsLooping)
+                {
+                    if ((motion.StartTime + motion.Motion.MotionLength) >= time)
+                    {
+                        break;
+                    }
 
-                motion.EndTime = newEndTime;
+                    motion.StartTime += motion.Motion.MotionLength;
+                }
 
-                _playingMotions[i] = motion;
+
+                _playingMotions[_playingMotions.Count - 1] = motion;
             }
 
             for (var i = 0; i < animatorClipInfo.Length; ++i)
@@ -211,9 +223,11 @@ namespace Live2D.Cubism.Framework.MotionFade
                 playingMotion.Speed = 1.0f;
                 playingMotion.StartTime = Time.time;
                 playingMotion.FadeInStartTime = Time.time;
-                playingMotion.EndTime = (playingMotion.Motion.MotionLength <= 0)
-                                        ? -1
-                                        : playingMotion.StartTime + playingMotion.Motion.MotionLength;
+                playingMotion.EndTime = -1.0f;
+                playingMotion.IsLooping = animatorClipInfo[i].clip.isLooping;
+                playingMotion.Weight = 0.0f;
+                playingMotion.InstanceId = instanceId;
+                playingMotion.IsAnimationEndEventInvoked = false;
 
                 _playingMotions.Add(playingMotion);
             }

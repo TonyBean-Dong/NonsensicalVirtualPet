@@ -9,6 +9,13 @@
 using Live2D.Cubism.Framework;
 using System;
 using UnityEngine;
+#if UNITY_2019_3_OR_NEWER
+using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
+#elif UNITY_2018_1_OR_NEWER
+using UnityEngine.Experimental.LowLevel;
+using UnityEngine.Experimental.PlayerLoop;
+#endif
 
 
 namespace Live2D.Cubism.Core
@@ -203,6 +210,31 @@ namespace Live2D.Cubism.Core
         CubismParameterStore _parameterStore;
 
         /// <summary>
+        /// Whether parameter repetition is performed for the entire model.
+        /// </summary>
+        [SerializeField]
+        private bool _isOverriddenParameterRepeat = true;
+
+
+        /// <summary>
+        /// Checks whether parameter repetition is performed for the entire model.
+        /// </summary>
+        /// <returns>True if parameter repetition is performed for the entire model; otherwise returns false.</returns>
+        public bool GetOverrideFlagForModelParameterRepeat()
+        {
+            return _isOverriddenParameterRepeat;
+        }
+
+        /// <summary>
+        /// Sets whether parameter repetition is performed for the entire model.
+        /// </summary>
+        /// <param name="isRepeat">Use true to perform parameter repetition for the entire model, or false to not perform it.</param>
+        public void SetOverrideFlagForModelParameterRepeat(bool isRepeat)
+        {
+            _isOverriddenParameterRepeat = isRepeat;
+        }
+
+        /// <summary>
         /// True if instance is revived.
         /// </summary>
         public bool IsRevived
@@ -217,6 +249,28 @@ namespace Live2D.Cubism.Core
         {
             get { return Moc != null; }
         }
+
+#if UNITY_2018_1_OR_NEWER
+        /// <summary>
+        /// Model update functions for player loop.
+        /// </summary>
+        [NonSerialized]
+        private static Action _modelUpdateFunctions;
+
+        private bool WasAttachedModelUpdateFunction { get; set; }
+#endif
+
+
+        /// <summary>
+        /// True on the frame the instance was enabled.
+        /// </summary>
+        private bool WasJustEnabled { get; set; }
+
+        /// <summary>
+        /// Frame number last update was done.
+        /// </summary>
+        private int LastTick { get; set; }
+
 
         /// <summary>
         /// Revives instance.
@@ -237,22 +291,7 @@ namespace Live2D.Cubism.Core
             }
 
 
-            // Revive unmanaged model.
-            TaskableModel = new CubismTaskableModel(Moc);
-
-
-            // Revive proxies.
-            Parameters = GetComponentsInChildren<CubismParameter>();
-            Parts = GetComponentsInChildren<CubismPart>();
-            Drawables = GetComponentsInChildren<CubismDrawable>();
-
-            Parameters.Revive(TaskableModel.UnmanagedModel);
-            Parts.Revive(TaskableModel.UnmanagedModel);
-            Drawables.Revive(TaskableModel.UnmanagedModel);
-
-            CanvasInformation = new CubismCanvasInformation(TaskableModel.UnmanagedModel);
-
-            _parameterStore = GetComponent<CubismParameterStore>();
+            Reset(Moc);
         }
 
         /// <summary>
@@ -265,23 +304,59 @@ namespace Live2D.Cubism.Core
             name = moc.name;
             TaskableModel = new CubismTaskableModel(moc);
 
-
-            // Create and initialize proxies.
-            var parameters = CubismParameter.CreateParameters(TaskableModel.UnmanagedModel);
-            var parts = CubismPart.CreateParts(TaskableModel.UnmanagedModel);
-            var drawables = CubismDrawable.CreateDrawables(TaskableModel.UnmanagedModel);
-
-
-            parameters.transform.SetParent(transform);
-            parts.transform.SetParent(transform);
-            drawables.transform.SetParent(transform);
+            if (TaskableModel == null || TaskableModel.UnmanagedModel == null)
+            {
+                return;
+            }
 
 
-            Parameters = parameters.GetComponentsInChildren<CubismParameter>();
-            Parts = parts.GetComponentsInChildren<CubismPart>();
-            Drawables = drawables.GetComponentsInChildren<CubismDrawable>();
+            Parameters = GetComponentsInChildren<CubismParameter>();
+            if (Parameters.Length < 1 && (transform.Find("Parameters") == null))
+            {
+                // Create and initialize proxies.
+                var parameters = CubismParameter.CreateParameters(TaskableModel.UnmanagedModel);
+                parameters.transform.SetParent(transform);
+                Parameters = parameters.GetComponentsInChildren<CubismParameter>();
+            }
+            else
+            {
+                Parameters.Revive(TaskableModel.UnmanagedModel);
+            }
+
+
+            Parts = GetComponentsInChildren<CubismPart>();
+            if (Parts.Length < 1 && (transform.Find("Parts") == null))
+            {
+                // Create and initialize proxies.
+                var parts = CubismPart.CreateParts(TaskableModel.UnmanagedModel);
+                parts.transform.SetParent(transform);
+                Parts = parts.GetComponentsInChildren<CubismPart>();
+            }
+            else
+            {
+                Parts.Revive(TaskableModel.UnmanagedModel);
+            }
+
+
+            Drawables = GetComponentsInChildren<CubismDrawable>();
+            if (Drawables.Length < 1 && (transform.Find("Drawables") == null))
+            {
+                // Create and initialize proxies.
+                var drawables = CubismDrawable.CreateDrawables(TaskableModel.UnmanagedModel);
+                drawables.transform.SetParent(transform);
+                Drawables = drawables.GetComponentsInChildren<CubismDrawable>();
+            }
+            else
+            {
+                Drawables.Revive(TaskableModel.UnmanagedModel);
+            }
+
 
             CanvasInformation = new CubismCanvasInformation(TaskableModel.UnmanagedModel);
+
+            RefreshParameterStore();
+
+            SetOverrideFlagForModelParameterRepeat(_isOverriddenParameterRepeat);
         }
 
         /// <summary>
@@ -294,27 +369,123 @@ namespace Live2D.Cubism.Core
 
 
             Revive();
+
+#if UNITY_2018_1_OR_NEWER
+            OnModelUpdate();
+#else
             OnRenderObject();
+#endif
         }
 
-        #region Unity Event Handling
+        /// <summary>
+        /// パラメータストアを最新の情報に更新する。
+        /// </summary>
+        public void RefreshParameterStore()
+        {
+            // CubismParameterStore を取得する。
+            _parameterStore = GetComponent<CubismParameterStore>();
+
+
+            // Return early if empty.
+            if (_parameterStore == null)
+            {
+                return;
+            }
+
+
+            // 最新の情報に更新する。
+            _parameterStore.Refresh();
+        }
+
+
+#if UNITY_2018_1_OR_NEWER
+        /// <summary>
+        /// Calls model update functions for player loop.
+        /// </summary>
+        private static void OnModelsUpdate()
+        {
+            if (_modelUpdateFunctions != null)
+            {
+                _modelUpdateFunctions.Invoke();
+            }
+        }
+
 
         /// <summary>
-        /// True on the frame the instance was enabled.
+        /// Register the model update function into the player loop.
         /// </summary>
-        private bool WasJustEnabled { get; set; }
+        [RuntimeInitializeOnLoadMethod]
+        private static void RegisterCallbackFunction()
+        {
+            // Prepare the function for using player loop.
+            var myPlayerLoopSystem = new PlayerLoopSystem()
+            {
+                type = typeof(CubismModel),     // Identifier for Profiler Hierarchy view.
+                updateDelegate = OnModelsUpdate    // Register the function.
+            };
 
-        /// <summary>
-        /// Frame number last update was done.
-        /// </summary>
-        private int LastTick { get; set; }
 
+            // Get the default player loop.
+            var playerLoopSystem =
+#if UNITY_2019_3_OR_NEWER
+                PlayerLoop.GetCurrentPlayerLoop();
+#else
+                PlayerLoop.GetDefaultPlayerLoop();
+#endif
+
+            var playerLoopIndex = -1;
+            for (var i = 0; i < playerLoopSystem.subSystemList.Length; i++)
+            {
+                if (playerLoopSystem.subSystemList[i].type != typeof(PreLateUpdate))
+                {
+                    continue;
+                }
+
+                playerLoopIndex = i;
+                break;
+            }
+
+            if (playerLoopIndex < 0)
+            {
+                Debug.LogError("CubismModel : Failed to add processing to PlayerLoop.");
+                return;
+            }
+
+            // Get the "PreLateUpdate" system.
+            var playerLoopSubSystem = playerLoopSystem.subSystemList[playerLoopIndex];
+            var subSystemList = playerLoopSubSystem.subSystemList;
+
+
+            // Register the model update function after "PreLateUpdate" system.
+            Array.Resize(ref subSystemList, subSystemList.Length + 1);
+            subSystemList[subSystemList.Length - 1] = myPlayerLoopSystem;
+
+
+            // Restore the "PreLateUpdate" sytem.
+            playerLoopSubSystem.subSystemList = subSystemList;
+            playerLoopSystem.subSystemList[playerLoopIndex] = playerLoopSubSystem;
+            PlayerLoop.SetPlayerLoop(playerLoopSystem);
+        }
+#endif
+
+#region Unity Event Handling
 
         /// <summary>
         /// Called by Unity. Triggers <see langword="this"/> to update.
         /// </summary>
         private void Update()
         {
+#if UNITY_2018_1_OR_NEWER
+            if (!WasAttachedModelUpdateFunction)
+            {
+                _modelUpdateFunctions += OnModelUpdate;
+
+
+                WasAttachedModelUpdateFunction = true;
+            }
+#endif
+
+
             // Return on first frame enabled.
             if (WasJustEnabled)
             {
@@ -340,9 +511,16 @@ namespace Live2D.Cubism.Core
             TaskableModel.TryReadParameters(Parameters);
 
             // restore last frame parameters value and parts opacity.
-            if(_parameterStore != null)
+            if (_parameterStore != null)
             {
+#if UNITY_EDITOR
+                if (Application.isPlaying)
+                {
+                    _parameterStore.RestoreParameters();
+                }
+#else
                 _parameterStore.RestoreParameters();
+#endif
             }
 
             // Trigger event.
@@ -360,6 +538,16 @@ namespace Live2D.Cubism.Core
         /// Called by Unity. Blockingly updates <see langword="this"/> on first frame enabled; otherwise tries async update.
         /// </summary>
         private void OnRenderObject()
+        {
+#if !UNITY_2018_1_OR_NEWER
+            OnModelUpdate();
+#endif
+        }
+
+        /// <summary>
+        /// Update model states.
+        /// </summary>
+        private void OnModelUpdate()
         {
             // Return unless revived.
             if (!IsRevived)
@@ -421,6 +609,19 @@ namespace Live2D.Cubism.Core
 
 
             Revive();
+        }
+
+        private void OnDisable()
+        {
+#if UNITY_2018_1_OR_NEWER
+            if (WasAttachedModelUpdateFunction)
+            {
+                _modelUpdateFunctions -= OnModelUpdate;
+
+
+                WasAttachedModelUpdateFunction = false;
+            }
+#endif
         }
 
         /// <summary>

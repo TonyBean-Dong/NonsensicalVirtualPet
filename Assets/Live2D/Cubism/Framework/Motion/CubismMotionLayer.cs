@@ -24,7 +24,12 @@ namespace Live2D.Cubism.Framework.Motion
         /// <summary>
         /// Action animation end handler.
         /// </summary>
-        public Action<int, float> AnimationEndHandler;
+        public Action<int, int> AnimationBeginHandler;
+
+        /// <summary>
+        /// Action animation end handler.
+        /// </summary>
+        public Action<int, int> AnimationEndHandler;
 
         #endregion
 
@@ -146,7 +151,7 @@ namespace Live2D.Cubism.Framework.Motion
             {
                 return;
             }
-            
+
             _playableGraph.Disconnect(_motionState.ClipMixer, 0);
             _motionState = null;
 
@@ -188,7 +193,7 @@ namespace Live2D.Cubism.Framework.Motion
         /// </summary>
         /// <param name="clip">Animator clip.</param>
         /// <param name="speed">Animation speed.</param>
-        private CubismFadePlayingMotion CreateFadePlayingMotion(AnimationClip clip, float speed = 1.0f)
+        private CubismFadePlayingMotion CreateFadePlayingMotion(AnimationClip clip, bool isLooping, float speed = 1.0f)
         {
             var ret = new CubismFadePlayingMotion();
 
@@ -221,6 +226,11 @@ namespace Live2D.Cubism.Framework.Motion
                 ret.EndTime = (ret.Motion.MotionLength <= 0)
                               ? -1
                               : ret.StartTime + ret.Motion.MotionLength / speed;
+                ret.IsLooping = isLooping;
+                ret.Weight = 0.0f;
+                ret.InstanceId = instanceId;
+                ret.IsAnimationEndEventInvoked = false;
+                AnimationBeginHandler(_layerIndex, instanceId);
 
                 break;
             }
@@ -245,7 +255,7 @@ namespace Live2D.Cubism.Framework.Motion
             {
                 _playableGraph.Disconnect(_motionState.ClipMixer, 0);
             }
-            
+
             // Create cubism motion state.
             _motionState = CubismMotionState.CreateCubismMotionState(_playableGraph, clip, isLoop, speed);
 
@@ -260,24 +270,37 @@ namespace Live2D.Cubism.Framework.Motion
 
 
             // Set last motion end time and fade in start time;
-            for (var i = 0; i < _playingMotions.Count; ++i)
+            if ((_playingMotions.Count > 0) && (_playingMotions[_playingMotions.Count - 1].Motion != null))
             {
-                var motion = _playingMotions[i];
+                var motion = _playingMotions[_playingMotions.Count - 1];
 
-                if (motion.Motion == null)
+                var time = Time.time;
+
+                var newEndTime = time + motion.Motion.FadeOutTime;
+
+                if (newEndTime < 0.0f || newEndTime < motion.EndTime)
                 {
-                    continue;
+                    motion.EndTime = newEndTime;
                 }
 
-                var newEndTime = Time.time + motion.Motion.FadeOutTime;
 
-                motion.EndTime = newEndTime;
+                while (motion.IsLooping)
+                {
+                    if ((motion.StartTime + motion.Motion.MotionLength) >= time)
+                    {
+                        break;
+                    }
 
-                _playingMotions[i] = motion;
+                    motion.StartTime += motion.Motion.MotionLength;
+                }
+
+                motion.IsLooping = false;
+
+                _playingMotions[_playingMotions.Count - 1] = motion;
             }
 
             // Create fade playing motion.
-            var playingMotion = CreateFadePlayingMotion(clip, speed);
+            var playingMotion = CreateFadePlayingMotion(clip, isLoop, speed);
             _playingMotions.Add(playingMotion);
 
             _isFinished = false;
@@ -352,27 +375,41 @@ namespace Live2D.Cubism.Framework.Motion
 
         public void Update()
         {
-            // Fail silently...
-            if (AnimationEndHandler == null || _playingMotions.Count != 1 || _isFinished
-             || _motionState.ClipPlayable.GetDuration() == double.MaxValue || Time.time <= _playingMotions[0].EndTime)
+            var isFinished = true;
+            for (var i = 0; i < _playingMotions.Count; i++)
             {
-                return;
-            }
+                var playingMotion = _playingMotions[i];
+                if (playingMotion.IsLooping)
+                {
+                    isFinished = false;
+                    continue;
+                }
 
-            _isFinished = true;
-            var instanceId = -1;
-            var events = _motionState.Clip.events;
-            for (var i = 0; i < events.Length; ++i)
-            {
-                if (events[i].functionName != "InstanceId")
+                if (playingMotion.IsAnimationEndEventInvoked)
                 {
                     continue;
                 }
 
-                instanceId = events[i].intParameter;
+                if (Time.time > playingMotion.EndTime)
+                {
+                    playingMotion.IsAnimationEndEventInvoked = true;
+                    _playingMotions[i] = playingMotion;
+                    if (playingMotion.InstanceId.HasValue)
+                    {
+                        var instanceId = _playingMotions[i].InstanceId.Value;
+                        AnimationEndHandler?.Invoke(_layerIndex, instanceId);
+                    }
+                }
+                else
+                {
+                    isFinished = false;
+                }
             }
 
-            AnimationEndHandler(_layerIndex, instanceId);
+            if (isFinished)
+            {
+                _isFinished = true;
+            }
         }
     }
 }

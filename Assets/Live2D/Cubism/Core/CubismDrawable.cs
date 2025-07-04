@@ -76,6 +76,13 @@ namespace Live2D.Cubism.Core
             private set { _unmanagedIndex = value; }
         }
 
+        /// <summary>
+        /// Parent Part Position in unmanaged arrays.
+        /// </summary>
+        public int UnmanagedParentIndex
+        {
+            get { return UnmanagedDrawables.ParentPartIndices[UnmanagedIndex]; }
+        }
 
         /// <summary>
         /// Copy of Id.
@@ -98,6 +105,66 @@ namespace Live2D.Cubism.Core
             {
                 // Pull data.
                 return UnmanagedDrawables.TextureIndices[UnmanagedIndex];
+            }
+        }
+
+        /// <summary>
+        /// <see cref="MultiplyColor"/> backing field.
+        /// </summary>
+        private Color _multiplyColor;
+
+        /// <summary>
+        /// Copy of MultiplyColor.
+        /// </summary>
+        public Color MultiplyColor
+        {
+            get
+            {
+                var index = UnmanagedIndex * 4;
+
+                // Pull data.
+                _multiplyColor.r = UnmanagedDrawables.MultiplyColors[index];
+                _multiplyColor.g = UnmanagedDrawables.MultiplyColors[index + 1];
+                _multiplyColor.b = UnmanagedDrawables.MultiplyColors[index + 2];
+                _multiplyColor.a = UnmanagedDrawables.MultiplyColors[index + 3];
+
+                return _multiplyColor;
+            }
+        }
+
+        /// <summary>
+        /// <see cref="ScreenColor"/> backing field.
+        /// </summary>
+        public Color _screenColor;
+
+        /// <summary>
+        /// Copy of ScreenColor.
+        /// </summary>
+        public Color ScreenColor
+        {
+            get
+            {
+                var index = UnmanagedIndex * 4;
+
+                // Pull data.
+                _screenColor.r = UnmanagedDrawables.ScreenColors[index];
+                _screenColor.g = UnmanagedDrawables.ScreenColors[index + 1];
+                _screenColor.b = UnmanagedDrawables.ScreenColors[index + 2];
+                _screenColor.a = UnmanagedDrawables.ScreenColors[index + 3];
+
+                return _screenColor; ;
+            }
+        }
+
+        /// <summary>
+        /// Index of Parent Part.
+        /// </summary>
+        public int ParentPartIndex
+        {
+            get
+            {
+                // Pull data.
+                return UnmanagedDrawables.ParentPartIndices[UnmanagedIndex];
             }
         }
 
@@ -308,7 +375,6 @@ namespace Live2D.Cubism.Core
                 return flags[UnmanagedIndex].HasBlendMultiplicativeFlag();
             }
         }
-
 
         /// <summary>
         /// Revives instance.

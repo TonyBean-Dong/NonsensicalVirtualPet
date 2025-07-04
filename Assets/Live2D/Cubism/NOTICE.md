@@ -1,53 +1,47 @@
-# Cubism 4 SDK 注意事項
+[English](NOTICE.md) / [日本語](NOTICE.ja.md)
+
+---
+
+# Notices
+
+## [Restrictions] Regarding lip-sync support from AudioClips when exporting to WebGL. (2024-11-28)
+
+The lip-sync from audio feature in the Cubism SDK for Unity uses the AudioClip API to obtain waveform information.
+However, since the API for dynamically obtaining waveform information from an AudioClip is not supported for WebGL builds in Unity, the lip-sync feature in the Cubism SDK for Unity is also not supported for WebGL exports.
+
+For details, please check　the official Unity documentation.
+
+* [Audio in WebGL](https://docs.unity3d.com/Manual/webgl-audio.html)
 
 
-## Cubism Core
+## [Restrictions] Manipulation of `RenderTextureCount` value for mask textures during execution (2024-03-26)
 
-### [注意事項] macOS Catalina での `.bundle` と `.dylib` の利用について
-
-macOS Catalina 上で `.bundle` と `.dylib` を利用する際、公証の確認のためオンライン環境に接続している必要があります。
-
-詳しくは、Apple社 公式ドキュメントをご確認ください。
-
-* [Apple社 公式ドキュメント](https://developer.apple.com/documentation/security/notarizing_your_app_before_distribution)
+If `CubismMaskTexture.RenderTextureCount` is changed during scene execution to a value greater than that at the start of execution, the mask will not be regenerated correctly.
+A supported version will be announced in a future release.
 
 
-##  Cubism 4 SDK for Unity beta 2 (4-beta.2)
+## [Restrictions] Support for Windows ARM64 (2024-01-18)
+
+Cubism SDK for Unity currently does not support Windows ARM64 builds for Unity 2023.1 or later.
+A supported version will be announced in a future release.
 
 
-### [制限事項] macOS Catalina のサポートについて
+## [Caution] Support for Apple's Privacy Manifest Policy
 
-現在、最新の Unity Editor `2019.2.11f1` では、下記のターゲットへのビルド時にエラーが発生し完了せず、ブロッキング状態となっています:
+This product does not use the APIs or third-party products specified in Apple's privacy manifest policy.
+This will be addressed in future updates if this product requires such support.
+Please check the documentation published by Apple for details.
 
-* iOS
-* iPad OS
-* WebGL
-
-
-#### 対応方法
-
-* Cubism 4 SDK for Unity では、当面の間 macOS Catalina のサポートをいたしません。
-  * 問題が解消されるまで、 macOS Mojave までのサポートといたします。
+[Privacy updates for App Store submissions](https://developer.apple.com/news/?id=3d8a9yyh)
 
 
-## Cubism 4 SDK for Native beta 2 (4-beta.2)
+## [Caution] About using `.bundle` and `.dylib` on macOS Catalina or later
 
+To use `.bundle` and `.dylib` on macOS Catalina or later, you need to be connected to an online environment to verify your notarization.
 
-### [制限事項] Xcode 11 での Cocos2d-x 版サンプルのビルドについて
+For details, please check the official Apple documentation.
 
-現在、 Cocos2d-x のライブラリの問題のため、 Xcode 11 ではサンプルプロジェクトがビルド時にエラーが発生し完了せず、ブロッキング状態となっています。
-なお、Stack Overflow に紹介されている方法を使用することにより、ビルドを正常に完了し、成果物も実行可能となります。
-
-
-#### 対応方法
-
-* Stack Overflowに紹介されている修正方法をご案内いたします。
-  * [Xcode 11, Cocos2dx compilation problem: Argument value 10880 is outside the valid range [0, 255] btVector3.h](https://stackoverflow.com/questions/58064487/xcode-11-cocos2dx-compilation-problem-argument-value-10880-is-outside-the-vali)
-
-* 公式コミュニティの報告
-  * [Xcode 11 - ios 13 - Cocos not running](https://discuss.cocos2d-x.org/t/xcode-11-ios-13-cocos-not-running/46825/5)
-
-
+* [Apple Official Documentation](https://developer.apple.com/documentation/security/notarizing_your_app_before_distribution)
 ---
 
 ©Live2D

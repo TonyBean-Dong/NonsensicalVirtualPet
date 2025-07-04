@@ -137,13 +137,13 @@ public class PianoController : NonsensicalMono
         IOCC.Register("TrayMenu", GetMenu);
     }
 
-    private List<(string, Action)> GetMenu()
+    private List<(string, int,Action)> GetMenu()
     {
-        var menu = new List<(string, Action)>()
+        var menu = new List<(string, int,Action)>()
         {
-            ($"钢琴按键\\切换状态({(_playing ? "启用中" : "禁用中")})(F6)", OnChangedState),
-            ($"钢琴按键\\切换变调状态({(_canModify ? "变调启用中" : "变调禁用中")})", OnSwitchModifier),
-            ($"钢琴按键\\采样切换({_sfzIndex + 1})", OnChangeSample),
+            ($"钢琴按键\\切换状态({(_playing ? "启用中" : "禁用中")})(F6)",700, OnChangedState),
+            ($"钢琴按键\\切换变调状态({(_canModify ? "变调启用中" : "变调禁用中")})",701, OnSwitchModifier),
+            ($"钢琴按键\\采样切换({_sfzIndex + 1})", 703,OnChangeSample),
         };
         return menu;
     }

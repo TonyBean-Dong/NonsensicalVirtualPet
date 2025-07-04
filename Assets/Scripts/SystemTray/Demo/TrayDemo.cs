@@ -28,12 +28,12 @@ public class TrayDemo : MonoBehaviour
 
     void Awake()
     {
-        var context = new List<(string, Action)>() {
-            (TrayIcon.LEFT_CLICK, Greet),
-            ("Turn Image Red", TurnImageRed),
-            ("Turn Image Blue", TurnImageBlue),
-            (TrayIcon.SEPARATOR, null),
-            ("Quit", Stop)
+        var context = new List<(string,int, Action)>() {
+            (TrayIcon.LEFT_CLICK,0, Greet),
+            ("Turn Image Red",0, TurnImageRed),
+            ("Turn Image Blue", 0,TurnImageBlue),
+            (TrayIcon.SEPARATOR, 0,null),
+            ("Quit", 0,Stop)
         };
 
         TrayIcon.Init("Demo", iconName, icon, context);

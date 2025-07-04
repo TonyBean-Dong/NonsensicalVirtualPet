@@ -12,7 +12,7 @@ PluginImporter:
   validateReferences: 1
   platformData:
   - first:
-      '': Any
+      : Any
     second:
       enabled: 0
       settings:
@@ -21,27 +21,12 @@ PluginImporter:
         Exclude Linux: 1
         Exclude Linux64: 1
         Exclude LinuxUniversal: 1
-        Exclude OSXIntel: 0
-        Exclude OSXIntel64: 0
         Exclude OSXUniversal: 0
-        Exclude PS4: 1
         Exclude WebGL: 1
         Exclude Win: 1
         Exclude Win64: 1
         Exclude WindowsStoreApps: 1
         Exclude iOS: 1
-  - first:
-      '': Editor
-    second:
-      enabled: 0
-      settings:
-        CPU: AnyCPU
-        OS: OSX
-  - first:
-      '': data
-    second:
-      enabled: 0
-      settings: {}
   - first:
       Android: Android
     second:
@@ -52,21 +37,7 @@ PluginImporter:
       Any: 
     second:
       enabled: 0
-      settings:
-        Exclude Android: 1
-        Exclude Editor: 0
-        Exclude Linux: 1
-        Exclude Linux64: 1
-        Exclude LinuxUniversal: 1
-        Exclude OSXIntel: 0
-        Exclude OSXIntel64: 0
-        Exclude OSXUniversal: 0
-        Exclude PS4: 1
-        Exclude WebGL: 1
-        Exclude Win: 1
-        Exclude Win64: 1
-        Exclude WindowsStoreApps: 1
-        Exclude iOS: 1
+      settings: {}
   - first:
       Editor: Editor
     second:
@@ -100,22 +71,11 @@ PluginImporter:
       settings:
         CPU: AnyCPU
   - first:
-      Standalone: OSXIntel
-    second:
-      enabled: 1
-      settings:
-        CPU: AnyCPU
-  - first:
-      Standalone: OSXIntel64
-    second:
-      enabled: 1
-      settings:
-        CPU: AnyCPU
-  - first:
       Standalone: OSXUniversal
     second:
       enabled: 1
-      settings: {}
+      settings:
+        CPU: AnyCPU
   - first:
       Standalone: Win
     second:
@@ -134,7 +94,7 @@ PluginImporter:
       enabled: 0
       settings:
         CPU: AnyCPU
-        DontProcess: False
+        DontProcess: false
         PlaceholderPath: 
         SDK: AnySDK
         ScriptingBackend: AnyScriptingBackend
@@ -143,6 +103,8 @@ PluginImporter:
     second:
       enabled: 0
       settings:
+        AddToEmbeddedBinaries: false
+        CPU: AnyCPU
         CompileFlags: 
         FrameworkDependencies: 
   userData: 

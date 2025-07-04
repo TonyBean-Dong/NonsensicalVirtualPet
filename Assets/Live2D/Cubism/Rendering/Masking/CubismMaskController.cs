@@ -8,6 +8,7 @@
 
 using Live2D.Cubism.Core;
 using Live2D.Cubism.Framework;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -80,7 +81,8 @@ namespace Live2D.Cubism.Rendering.Masking
         /// <summary>
         /// Model has update controller component.
         /// </summary>
-        private bool _hasUpdateController = false;
+        [HideInInspector]
+        public bool HasUpdateController { get; set; }
 
         /// <summary>
         /// Makes sure controller is initialized once.
@@ -117,8 +119,15 @@ namespace Live2D.Cubism.Rendering.Masking
                     continue;
                 }
 
+                // Make sure no leftover null-entries are added as mask.
+                var masks = Array.FindAll(drawables[i].Masks, mask => mask != null);
 
-                pairs.Add(drawables[i], drawables[i].Masks);
+                if (masks.Length == 0)
+                {
+                    continue;
+                }
+
+                pairs.Add(drawables[i], masks);
             }
 
 
@@ -150,12 +159,18 @@ namespace Live2D.Cubism.Rendering.Masking
         /// <summary>
         /// Called by cubism update controller. Order to invoke OnLateUpdate.
         /// </summary>
-        public int ExecutionOrder => CubismUpdateExecutionOrder.CubismMaskController;
+        public int ExecutionOrder
+        {
+            get { return CubismUpdateExecutionOrder.CubismMaskController; }
+        }
 
         /// <summary>
         /// Called by cubism update controller. Needs to invoke OnLateUpdate on Editing.
         /// </summary>
-        public bool NeedsUpdateOnEditing => true;
+        public bool NeedsUpdateOnEditing
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// Called by cubism update controller. Updates <see cref="Junktions"/>.
@@ -191,7 +206,7 @@ namespace Live2D.Cubism.Rendering.Masking
             MaskTexture.AddSource(this);
 
             // Get cubism update controller.
-            _hasUpdateController = (GetComponent<CubismUpdateController>() != null);
+            HasUpdateController = (GetComponent<CubismUpdateController>() != null);
         }
 
 
@@ -200,7 +215,7 @@ namespace Live2D.Cubism.Rendering.Masking
         /// </summary>
         private void LateUpdate()
         {
-            if(!_hasUpdateController)
+            if(!HasUpdateController)
             {
                 OnLateUpdate();
             }
@@ -224,6 +239,14 @@ namespace Live2D.Cubism.Rendering.Masking
         #endregion
 
         #region ICubismMaskDrawSource
+
+        /// <summary>
+        /// Number of command buffers required.
+        /// </summary>
+        public int CountOfCommandBuffers
+        {
+            get { return MaskTexture.CountOfCommandBuffers; }
+        }
 
         /// <summary>
         /// Queries the number of tiles needed by the source.
@@ -254,11 +277,11 @@ namespace Live2D.Cubism.Rendering.Masking
         /// <summary>
         /// Called when source should instantly draw.
         /// </summary>
-        void ICubismMaskCommandSource.AddToCommandBuffer(CommandBuffer buffer)
+        void ICubismMaskCommandSource.AddToCommandBuffer(CommandBuffer buffer, bool isUsingMultipleBuffer, int bufferIndex)
         {
             for (var i = 0; i < Junctions.Length; ++i)
             {
-                Junctions[i].AddToCommandBuffer(buffer);
+                Junctions[i].AddToCommandBuffer(buffer, isUsingMultipleBuffer, bufferIndex);
             }
         }
 

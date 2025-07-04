@@ -67,16 +67,16 @@ public class WindowsHacker : NonsensicalMono
         _keyboardHooker.StartHook();
     }
 
-    private List<(string, Action)> GetMenu()
+    private List<(string,int, Action)> GetMenu()
     {
-        var v = IOCC.GetAll<List<(string, Action)>>("TrayMenu");
-        var result = new List<(string, Action)>();
+        var v = IOCC.GetAll<List<(string,int, Action)>>("TrayMenu");
+        var result = new List<(string,int, Action)>();
         foreach (var item in v)
         {
             result.AddRange(item);
         }
 
-        result.Add(("关闭程序(F10)", () => _closeFlag = true));
+        result.Add(("关闭程序(F10)", 1000,() => _closeFlag = true));
         return result;
     }
 

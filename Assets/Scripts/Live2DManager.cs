@@ -12,7 +12,9 @@ public enum Live2DEvent
 
 public class Live2DManager : NonsensicalMono
 {
+    [SerializeField] private GameObject m_model;
     [SerializeField] private GameObject m_live2D;
+    [SerializeField] private Camera m_camera;
     [SerializeField] private bool m_initShow;
 
     private bool _isDown;
@@ -27,16 +29,16 @@ public class Live2DManager : NonsensicalMono
         _state = m_initShow ? 0 : 2;
     }
 
-    private List<(string, Action)> GetMenu()
+    private List<(string, int, Action)> GetMenu()
     {
-        string nextState = _state switch
+        string stateString = (_state % 3) switch
         {
             0 => "常规显示",
             1 => "一直显示",
             2 => "隐藏",
             _ => "未知状态"
         };
-        return new List<(string, Action)>() { ($@"Live2D\切换状态({nextState})(F9)", ChangedState) };
+        return new List<(string, int, Action)>() { ($@"Live2D\切换状态({stateString})(F9)", 900, ChangedState) };
     }
 
     private void Update()
@@ -85,7 +87,7 @@ public class Live2DManager : NonsensicalMono
                 m_live2D.gameObject.SetActive(true);
                 if (_isDown == true)
                 {
-                    gameObject.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                    m_model.transform.position = Vector3.Scale(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector3(1, 1, 0));
                 }
 
                 break;

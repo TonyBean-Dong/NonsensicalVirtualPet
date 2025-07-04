@@ -17,12 +17,12 @@ namespace Live2D.Cubism.Framework.Physics
     public static class CubismPhysics
     {
         /// <summary>
-        /// Gravity.
+        /// Default gravity.
         /// </summary>
         public static Vector2 Gravity = Vector2.down;
 
         /// <summary>
-        /// Direction of wind.
+        /// Default direction of wind.
         /// </summary>
         public static Vector2 Wind = Vector2.zero;
 
@@ -50,5 +50,8 @@ namespace Live2D.Cubism.Framework.Physics
         /// Threshold of moving.
         /// </summary>
         public const float MovementThreshold = 0.001f;
+
+        /// Constant of maximum allowed delta time
+        public const float MaxDeltaTime = 5.0f;
     }
 }

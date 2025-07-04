@@ -1,39 +1,47 @@
-# Cubism SDK for Unity
+[English](README.md) / [日本語](README.ja.md)
+
+---
+
+# Cubism Unity Components
 
 Welcome to the open components of the Cubism SDK for Unity.
 
-Go [here](https://www.live2d.com/download/cubism-sdk/download-unity/)
-if you're looking for the download page of the SDK package.
+It is used in conjunction with the Live2D Cubism Core.
 
-## Notice
+Go [here](https://www.live2d.com/download/cubism-sdk/download-unity/) if you're looking for the download page of the SDK package.
 
-Please read the notices before use.
+## License
 
-Go [here](./NOTICE.md).
+Please read the [license](LICENSE.md) before use.
+
+## Notices
+
+Please read the [notices](NOTICE.md) before use.
+
+## Compatibility with Cubism 5 new features and previous Cubism SDK versions
+
+This SDK is compatible with Cubism 5.  
+For SDK compatibility with new features in Cubism 5 Editor, please refer to [here](https://docs.live2d.com/en/cubism-sdk-manual/cubism-5-new-functions/).  
+For compatibility with previous versions of Cubism SDK, please refer to [here](https://docs.live2d.com/en/cubism-sdk-manual/compatibility-with-cubism-5/).
+
 
 ## Structure
 
 ### Components
 
-The components are grouped by their role,
-and this grouping is reflected in both folder structure and namespaces.
+The components are grouped by their role, and this grouping is reflected in both the folder structure and namespaces.
 
 #### Core Wrapper
 
-Components and classes in this group are a shim layer for wrapping the unmanaged Cubism core library to
-C# and Unity and are located in `./Assets/Live2D/Cubism/Core`.
+Components and classes in this group are a shim layer for wrapping the unmanaged Cubism core library to C# and Unity and are located in `./Assets/Live2D/Cubism/Core`.
 
 #### Framework
 
-Components and classes in this group provide additional functionality like lip-syncing,
-as well as integration of 'foreign' Cubism files with Unity.
-Turning Cubism files into Prefabs and AnimationClips is done here.
-All framework code is located in `./Assets/Live2D/Cubism/Framework`.
+Components and classes in this group provide additional functionality like lip-syncing, as well as integration of "foreign" Cubism files with Unity. The feature to convert Cubism files into Prefabs and AnimationClips is here.All the framework code is located in `./Assets/Live2D/Cubism/Framework`.
 
 #### Rendering
 
-Components and classes in this group provide the functionality for rendering Cubism models using Unity functionality
-and are located in `./Assets/Live2D/Cubism/Rendering`.
+Components and classes in this group provide the functionality for rendering Cubism models using Unity functionality and are located in `./Assets/Live2D/Cubism/Rendering`.
 
 ### Editor Extensions
 
@@ -43,91 +51,92 @@ Unity Editor extensions are located in `./Assets/Live2D/Cubism/Editor`.
 
 Resources like shaders and other assets are located in `./Assets/Live2D/Cubism/Rendering/Resources`.
 
-
 ## Development environment
 
 | Unity | Version |
 | --- | --- |
-| Latest | 2019.2.11f1 |
-| LTS | 2018.4.12f1 |
-| LTS | 2017.4.34f1 |
+| Latest | 6000.0.49f1 |
+| LTS | 2022.3.61f1 |
 
 | Library / Tool | Version |
 | --- | --- |
-| Android NDK | r16b |
-| Android SDK | 28.0.3 *1 |
-| Visual Studio 2019 | 16.3.7 |
-| Windows SDK | 10.0.18362.0 |
-| Xcode | 11.2 |
+| Android SDK / NDK | *2 |
+| Visual Studio 2022 | 17.14.2 |
+| Windows SDK | 11.0.26100.3916 |
+| Xcode | 16.1 |
 
-*1 Unity 2017 requires Anroid NDK r13b
+*2 Use libraries embedded with Unity or recommended.
 
+| HarmonyOS NEXT Supported Tools | Version |
+| --- | --- |
+| Tuanjie | 1.5.2 |
+| DevEco Studio *3 | 5.0.13.200 |
+
+*3 Builds for HarmonyOS NEXT outside of China must be built through DevEco.
+
+### C# compiler
+
+Build using Roslyn or mcs compiler supported by Unity 2018.4 and above.
+
+Note: The mcs compiler is deprecated and we only check the build.
+
+Please refer to the following official documentation for the versions of C# you can use.
+
+https://docs.unity3d.com/ja/2018.4/Manual/CSharpCompiler.html
 
 ## Tested environment
 
 | Platform | Version |
 | --- | --- |
-| Android | 10 |
-| iOS | 13.2 |
-| iPadOS | 13.2 |
-| Ubuntu | 19.10 |
-| macOS | 10.14.6 |
-| Windows 10 | 1903 |
+| Android | 16 |
+| iOS | 18.5 |
+| iPadOS | 18.5 |
+| Ubuntu | 24.04.1 |
+| macOS | 15.5 |
+| Windows 11 | 24H2 (*4) |
+| Google Chrome | 131.0.6778.86 |
+| Chrome OS x86_64 | 130.0.6723.126 |
+| Chrome OS ARMv8 (*5) | 130.0.6723.126　|
+| HarmonyOS NEXT | 5.0.0.102 |
 
+*4 In Unity 6, we have not verified the operation of builds for UWP.
+*5 This is a confirmation of operation with APK files for Android.
 
 ## Branches
 
 If you're looking for the latest features and/or fixes, all development takes place in the `develop` branch.
 
-The `master` branch is brought in sync with the `develop` branch once every official SDK release.
-
+The `master` branch is brought into sync with the `develop` branch once for every official SDK release.
 
 ## Usage
 
-Simply copy all files under `./Assets` into the folder the Live2D Cubism SDK is located in your Unity project.
+Simply copy all files under `./Assets` into the folder where the Live2D Cubism SDK is located in your Unity project.
 
 ### Unsafe Blocks
 
-The Core wrapper requires unsafe code blocks to be allowed and the C# project Unity creates is patched accordingly.
-If unsafe code isn't an option for you, currently the best way is to compile the components and drop that dll into your Unity project.
-
+The Core wrapper requires unsafe code blocks to be allowed, and the C# project Unity creates is patched accordingly. If unsafe code isn't an option for you, currently the best way is to compile the components and drop that dll into your Unity project.
 
 ## Contributing
 
-There are many ways to contribute to the project:
-logging bugs, submitting pull requests on this GitHub, and reporting issues and making suggestions at Live2D Community.
+There are many ways to contribute to the project: logging bugs, submitting pull requests on this GitHub, and reporting issues and making suggestions in Live2D Community.
 
 ### Forking And Pull Requests
 
-We very appreciate your pull requests whether they bring fixes, improvements, or even new features.
-Note, however, that the wrapper is designed to be as lightweight and shallow as possible and
-should therefore only be subject to bug fixes and memory/performance improvements.
-To keep the main repository as clean as possible, create a personal fork and feature branches there as needed.
+We very much appreciate your pull requests, whether they bring fixes, improvements, or even new features. To keep the main repository as clean as possible, create a personal fork and feature branches there as needed.
 
 ### Bugs
 
-We are regularly checking issue-reports and feature requests at Live2D Community.
-Before filing a bug report, please do a search in Live2D Community to see if the issue-report or feature request has already been posted.
-If you find your issue already exists, make relevant comments and add your reaction.
+We are regularly checking issue-reports and feature requests at Live2D Community. Before filing a bug report, please do a search in Live2D Community to see if the issue-report or feature request has already been posted. If you find your issue already exists, make relevant comments and add your reaction.
 
 ### Suggestions
 
-We're also interested in your feedback for the future of the SDK.
-You can submit a suggestion or feature request at Live2D Community.
-To make this process more effective, we're asking that these include more information
-to help define them more clearly.
-
-### Discussion Etiquette
-
-Please limit the discussion to English and keep it professional and things on topic.
-
+We're also interested in your feedback for the future of the SDK. You can submit a suggestion or feature request at Live2D Community. To make this process more effective, we're asking that you include more information to help define them more clearly.
 
 ## Coding Guidelines
 
 ### Naming
 
-Try to stick to the [Microsoft guidelines](https://msdn.microsoft.com/en-us/library/ms229002(v=vs.110).aspx) whenever possible.
-We name private fields in lower-camelcase starting with an underscore.
+Try to stick to the [Microsoft guidelines](https://msdn.microsoft.com/en-us/library/ms229002(v=vs.110).aspx) whenever possible. We name private fields in lower-camelcase starting with an underscore.
 
 ### Style
 
@@ -135,35 +144,9 @@ We name private fields in lower-camelcase starting with an underscore.
 - Stay away from LINQ and prefer `for` over `foreach` anywhere else.
 - Try to be explicit. Prefer `private void Update()` over `void Update()`.
 
+## Forum
 
-## ライセンス
+If you have any questions, please join the official Live2D forum and discuss with other users.
 
-Cubism Unity Componentsは Live2D Open Software License で提供しています。
-- Live2D Open Software License
-
-  [日本語](https://www.live2d.com/eula/live2d-open-software-license-agreement_jp.html)
-  [English](https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html)
-
-Live2D Cubism Core for Unity は Live2D Proprietary Software License で提供しています。
-- Live2D Proprietary Software License
-
-  [日本語](https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_jp.html)
-  [English](https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html)
-
-Live2D のサンプルモデルは Free Material License で提供しています。
-- Free Material License
-
-  [日本語](https://www.live2d.com/eula/live2d-free-material-license-agreement_jp.html)
-  [English](https://www.live2d.com/eula/live2d-free-material-license-agreement_en.html)
-  - `./Assets/Live2D/Cubism/Samples/Models/Clipping`
-  - `./Assets/Live2D/Cubism/Samples/Models/Koharu`
-  - `./Assets/Live2D/Cubism/Samples/Models/Natori`
-  - `./Assets/Live2D/Cubism/Samples/Models/Rice`
-
-上記のモデルをご利用になられる場合、[こちら](https://docs.live2d.com/cubism-editor-manual/sample-model/)で各モデルに設定された利用条件に同意して頂く必要がございます。
-
-直近会計年度の売上高が 1000 万円以上の事業者様がご利用になる場合は、SDKリリース(出版許諾)ライセンスに同意していただく必要がございます。
-- [SDKリリース(出版許諾)ライセンス](https://www.live2d.com/ja/products/releaselicense)
-
-*All business* users must obtain a Publication License. "Business" means an entity with the annual gross revenue more than ten million (10,000,000) JPY for the most recent fiscal year.
-- [SDK Release (Publication) License](https://www.live2d.com/en/products/releaselicense)
+- [Live2D Creator's Forum](https://community.live2d.com/)
+- [Live2D 公式クリエイターズフォーラム (Japanese)](https://creatorsforum.live2d.com/)

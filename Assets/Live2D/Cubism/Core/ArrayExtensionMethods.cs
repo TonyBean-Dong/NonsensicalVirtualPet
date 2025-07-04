@@ -7,6 +7,7 @@
 
 
 using Live2D.Cubism.Core.Unmanaged;
+using Live2D.Cubism.Framework;
 using System;
 using UnityEngine;
 
@@ -97,7 +98,7 @@ namespace Live2D.Cubism.Core
             // Pull.
             for (var i = 0; i < self.Length; ++i)
             {
-                self[i].Value = values[self[i].UnmanagedIndex];
+                self[i].OverrideValue(values[self[i].UnmanagedIndex]);
             }
         }
 
@@ -229,7 +230,8 @@ namespace Live2D.Cubism.Core
             var drawOrders = drawables.DrawOrders;
             var renderOrders = drawables.RenderOrders;
             var vertexPositions = drawables.VertexPositions;
-
+            var multiplyColors = drawables.MultiplyColors;
+            var screenColors = drawables.ScreenColors;
 
             // Pull data.
             for (var i = 0; i < self.Length; ++i)
@@ -259,6 +261,15 @@ namespace Live2D.Cubism.Core
                         dataVertexPositions[v].y = vertexPositions[i][(v * 2) + 1];
                     }
                 }
+
+                if (!data.IsBlendColorDirty)
+                {
+                    continue;
+                }
+
+                var rgbaIndex = i * 4;
+                data.MultiplyColor = new Color(multiplyColors[rgbaIndex], multiplyColors[rgbaIndex + 1], multiplyColors[rgbaIndex + 2], multiplyColors[rgbaIndex + 3]);
+                data.ScreenColor = new Color(screenColors[rgbaIndex], screenColors[rgbaIndex + 1], screenColors[rgbaIndex + 2], screenColors[rgbaIndex + 3]);
             }
 
 

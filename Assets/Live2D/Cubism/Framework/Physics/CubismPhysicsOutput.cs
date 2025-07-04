@@ -23,15 +23,15 @@ namespace Live2D.Cubism.Framework.Physics
         /// Delegation of function of getting output value.
         /// </summary>
         /// <param name="translation">Translation.</param>
-        /// <param name="parameter">Parameter.</param>
         /// <param name="particles">Particles.</param>
         /// <param name="particleIndex">Index of particle.</param>
+        /// <param name="gravity">Gravity.</param>
         /// <returns>Output value.</returns>
         public delegate float ValueGetter(
             Vector2 translation,
-            CubismParameter parameter,
             CubismPhysicsParticle[] particles,
-            int particleIndex
+            int particleIndex,
+            Vector2 gravity
         );
 
         /// <summary>
@@ -40,20 +40,19 @@ namespace Live2D.Cubism.Framework.Physics
         /// <returns>Output scale.</returns>
         public delegate float ScaleGetter();
 
-
         /// <summary>
         /// Gets output for translation X-axis.
         /// </summary>
         /// <param name="translation">Translation.</param>
-        /// <param name="parameter">Parameter.</param>
         /// <param name="particles">Particles.</param>
         /// <param name="particleIndex">Index of particle.</param>
+        /// <param name="gravity">Gravity.</param>
         /// <returns>Output value.</returns>
         private float GetOutputTranslationX(
             Vector2 translation,
-            CubismParameter parameter,
             CubismPhysicsParticle[] particles,
-            int particleIndex
+            int particleIndex,
+            Vector2 gravity
         )
         {
             var outputValue = translation.x;
@@ -70,15 +69,15 @@ namespace Live2D.Cubism.Framework.Physics
         /// Gets output for translation Y-axis.
         /// </summary>
         /// <param name="translation">Translation.</param>
-        /// <param name="parameter">Parameter.</param>
         /// <param name="particles">Particles.</param>
         /// <param name="particleIndex">Index of particle.</param>
+        /// <param name="gravity">Gravity.</param>
         /// <returns>Output value.</returns>
         private float GetOutputTranslationY(
             Vector2 translation,
-            CubismParameter parameter,
             CubismPhysicsParticle[] particles,
-            int particleIndex
+            int particleIndex,
+            Vector2 gravity
         )
         {
             var outputValue = translation.y;
@@ -95,15 +94,15 @@ namespace Live2D.Cubism.Framework.Physics
         /// Gets output for angle.
         /// </summary>
         /// <param name="translation">Translation.</param>
-        /// <param name="parameter">Parameter.</param>
         /// <param name="particles">Particles.</param>
         /// <param name="particleIndex">Index of particle.</param>
+        /// <param name="gravity">Gravity.</param>
         /// <returns>Output value.</returns>
         private float GetOutputAngle(
             Vector2 translation,
-            CubismParameter parameter,
             CubismPhysicsParticle[] particles,
-            int particleIndex
+            int particleIndex,
+            Vector2 gravity
         )
         {
             var parentGravity = Vector2.zero;
@@ -113,7 +112,7 @@ namespace Live2D.Cubism.Framework.Physics
             {
                 if (particleIndex < 2)
                 {
-                    parentGravity = CubismPhysics.Gravity;
+                    parentGravity = gravity;
                     parentGravity.y *= -1.0f;
                 }
                 else
@@ -124,7 +123,7 @@ namespace Live2D.Cubism.Framework.Physics
             }
             else
             {
-                parentGravity = CubismPhysics.Gravity;
+                parentGravity = gravity;
                 parentGravity.y *= -1.0f;
             }
 
@@ -139,7 +138,6 @@ namespace Live2D.Cubism.Framework.Physics
 
             return outputValue;
         }
-
 
         /// <summary>
         /// Gets output scale for translation X-axis.
@@ -261,6 +259,12 @@ namespace Live2D.Cubism.Framework.Physics
         /// </summary>
         [NonSerialized]
         public CubismParameter Destination;
+
+        /// <summary>
+        /// <see cref="Destination"/> index.
+        /// </summary>
+        [NonSerialized]
+        public int DestinationIndex;
 
         /// <summary>
         /// Function of getting output value.

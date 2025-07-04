@@ -5,11 +5,8 @@ PluginImporter:
   serializedVersion: 2
   iconMap: {}
   executionOrder: {}
-  defineConstraints: []
   isPreloaded: 0
   isOverridable: 0
-  isExplicitlyReferenced: 0
-  validateReferences: 1
   platformData:
   - first:
       '': Any
@@ -69,7 +66,7 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: x86_64
   - first:
       Standalone: LinuxUniversal
     second:
@@ -100,7 +97,7 @@ PluginImporter:
       enabled: 1
       settings:
         CPU: X64
-        DontProcess: false
+        DontProcess: False
         PlaceholderPath: 
         SDK: UWP
         ScriptingBackend: AnyScriptingBackend
@@ -109,7 +106,6 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        AddToEmbeddedBinaries: false
         CompileFlags: 
         FrameworkDependencies: 
   userData: 

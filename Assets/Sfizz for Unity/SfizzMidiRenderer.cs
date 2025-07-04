@@ -421,7 +421,10 @@ namespace F1yingBanana.SfizzUnity
                 
             });
 
-            clip.SetData(fullBuffer.ToArray(), 0);
+            if (clip)
+            {
+                clip.SetData(fullBuffer.ToArray(), 0);
+            }
 
             return clip;
         }

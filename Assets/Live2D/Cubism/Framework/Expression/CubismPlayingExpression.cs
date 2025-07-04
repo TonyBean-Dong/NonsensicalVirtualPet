@@ -6,6 +6,7 @@
  */
 
 
+using System;
 using Live2D.Cubism.Core;
 using UnityEngine;
 
@@ -50,6 +51,12 @@ namespace Live2D.Cubism.Framework.Expression
         public float ExpressionUserTime;
 
         /// <summary>
+        /// Expression start time.
+        /// </summary>
+        [SerializeField]
+        public float ExpressionStartTime;
+
+        /// <summary>
         /// Expression end time.
         /// </summary>
         [SerializeField]
@@ -73,6 +80,24 @@ namespace Live2D.Cubism.Framework.Expression
         [SerializeField]
         public CubismParameterBlendMode[] Blend;
 
+        /// <summary>
+        /// Expression fade weight.
+        /// </summary>
+        [NonSerialized, HideInInspector]
+        public float FadeWeight;
+
+        /// <summary>
+        /// Expression fade in weight.
+        /// </summary>
+        [NonSerialized, HideInInspector]
+        public float FadeInWeight;
+
+        /// <summary>
+        /// Expression fade out weight.
+        /// </summary>
+        [NonSerialized, HideInInspector]
+        public float FadeOutWeight;
+
         #endregion
 
         /// <summary>
@@ -92,16 +117,17 @@ namespace Live2D.Cubism.Framework.Expression
 
             ret.Type = expressionData.Type;
 
-            ret.FadeInTime = (expressionData.FadeInTime <= 0.0f)
+            ret.FadeInTime = (expressionData.FadeInTime < 0.0f)
                                 ? 1.0f
                                 : expressionData.FadeInTime;
 
-            ret.FadeOutTime = (expressionData.FadeOutTime <= 0.0f)
+            ret.FadeOutTime = (expressionData.FadeOutTime < 0.0f)
                                 ? 1.0f
                                 : expressionData.FadeOutTime;
 
-            ret.Weight = 0.0f;
+            ret.Weight = 1.0f;
             ret.ExpressionUserTime = 0.0f;
+            ret.ExpressionStartTime = 0.0f;
             ret.ExpressionEndTime = 0.0f;
 
             var parameterCount = expressionData.Parameters.Length;
