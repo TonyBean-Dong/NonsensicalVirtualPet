@@ -9,7 +9,9 @@ using NonsensicalKit.Core;
 using NonsensicalKit.Core.Log;
 using NonsensicalKit.Tools.ObjectPool;
 using NonsensicalKit.Windows.Hook;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -80,7 +82,8 @@ public sealed class MidiPlayerController : NonsensicalMono
 
     private void Awake()
     {
-        _players = new AudioSource[m_midiFiles.Length][];
+        var midiCount = m_midiFilesPath?.Length ?? 0;
+        _players = new AudioSource[midiCount][];
         Subscribe(MidiMusicEvent.ChangeMidiMusicState, OnSwitchMidiMusic);
         Subscribe(MidiMusicEvent.ChangeMidiMusicSample, OnChangeMidiMusicSample);
         Subscribe<KeyEvent>(WindowsEvent.KeyBoardEvent, this.OnKeyboardEvent);
@@ -91,26 +94,35 @@ public sealed class MidiPlayerController : NonsensicalMono
         _sourcesPool = new ComponentPool<AudioSource>(source, OnNew, OnStore);
         IOCC.Register("TrayMenu", GetMenu);
     }
-    private List<(string, int,Action)> GetMenu()
+    private List<(string, int, Action)> GetMenu()
     {
-        var menu = new List<(string, int,Action)>()
+        var menu = new List<(string, int, Action)>()
         {
-            ($"Midi音乐\\切换状态({(_isPlaying?"启用中":"禁用中")})(F7)",800,OnSwitchMidiMusic),
-            ($"Midi音乐\\采样切换({_crtSample+1})(F8)", 801,OnChangeMidiMusicSample),
+            ($"Midi音乐\\切换状态({(_isPlaying ? "启用中" : "禁用中")})(F7)", 800, OnSwitchMidiMusic),
+            ($"Midi音乐\\采样切换({_crtSample + 1})(F8)", 801, OnChangeMidiMusicSample),
         };
         return menu;
     }
 
     private void OnNew(AudioSource source)
     {
+        source.loop = true;
     }
 
     private void OnStore(AudioSource source)
     {
+        source.Stop();
+        source.clip = null;
     }
 
     private void OnChangeMidiMusicSample()
     {
+        if (!HasValidSampleConfig())
+        {
+            Debug.LogWarning("未配置SFZ采样路径，无法切换Midi采样。");
+            return;
+        }
+
         _crtSample++;
         if (_crtSample >= m_sfzFilesPath.Length)
         {
@@ -164,6 +176,7 @@ public sealed class MidiPlayerController : NonsensicalMono
 
     private void Switch(int index)
     {
+        if (!HasValidMidiConfig()) return;
         if (index < 0 || index >= m_midiFilesPath.Length) return;
         if (_loading) return;
         if (!_isPlaying) return;
@@ -187,6 +200,9 @@ public sealed class MidiPlayerController : NonsensicalMono
 
     private async UniTask RenderMidiAsync(int index)
     {
+        if (!HasValidMidiConfig()) return;
+        if (!HasValidSampleConfig()) return;
+        if (index < 0 || index >= _players.Length) return;
         if (_players[index] != null)
         {
             return;
@@ -195,34 +211,42 @@ public sealed class MidiPlayerController : NonsensicalMono
         LogCore.Debug($"播放{m_midiFilesPath[index]}");
 
         _loading = true;
-        var midiPath = Path.Combine(Application.streamingAssetsPath, m_midiFilesPath[index]);
-
-        MidiFile midiFile = MidiFile.Read(midiPath);
-
-        var clips = await m_sfizzMidiRenderer.RenderAsync(midiFile,
-            Path.Combine(Application.streamingAssetsPath, m_sfzFilesPath[_crtSample]), m_sampleRate);
-
-        await UniTask.SwitchToMainThread();
-
-        _loading = false;
-        LogCore.Debug($"加载完成{m_midiFilesPath[index]}");
-        if (_crtIndex != index)
+        try
         {
-            return;
-        }
+            var midiPath = Path.Combine(Application.streamingAssetsPath, m_midiFilesPath[index]);
+            var sfzPath = Path.Combine(Application.streamingAssetsPath, m_sfzFilesPath[_crtSample]);
 
-        _players[index] = new AudioSource[clips.Length];
-        for (int i = 0; i < clips.Length; i++)
-        {
-            AudioClip clip = clips[i];
+            MidiFile midiFile = MidiFile.Read(midiPath);
+            var clips = await m_sfizzMidiRenderer.RenderAsync(midiFile, sfzPath, m_sampleRate);
 
-            if (clip != null)
+            await UniTask.SwitchToMainThread();
+
+            LogCore.Debug($"加载完成{m_midiFilesPath[index]}");
+            if (_crtIndex != index)
             {
+                return;
+            }
+
+            _players[index] = new AudioSource[clips.Length];
+            for (int i = 0; i < clips.Length; i++)
+            {
+                AudioClip clip = clips[i];
+                if (clip == null) continue;
+
                 var newSource = _sourcesPool.New();
                 newSource.clip = clip;
                 newSource.Play();
                 _players[index][i] = newSource;
             }
+        }
+        catch (Exception ex)
+        {
+            await UniTask.SwitchToMainThread();
+            Debug.LogError($"加载Midi失败: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
@@ -235,11 +259,22 @@ public sealed class MidiPlayerController : NonsensicalMono
 
         foreach (var source in _players[index])
         {
+            if (source == null) continue;
             source.Stop();
             source.clip = null;
             _sourcesPool.Store(source);
         }
 
         _players[index] = null;
+    }
+
+    private bool HasValidMidiConfig()
+    {
+        return m_midiFilesPath != null && m_midiFilesPath.Length > 0;
+    }
+
+    private bool HasValidSampleConfig()
+    {
+        return m_sfzFilesPath != null && m_sfzFilesPath.Length > 0;
     }
 }

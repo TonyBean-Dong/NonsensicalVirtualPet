@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using NonsensicalKit.Core;
 using NonsensicalKit.Windows.Hook;
 using NonsensicalKit.Windows.Window;
@@ -46,8 +47,8 @@ public class WindowsHacker : NonsensicalMono
     private bool _closeFlag;
 
     private readonly HashSet<VirtualKeys> _pressedKeys = new HashSet<VirtualKeys>();
-    private readonly Queue<MouseEvent> _mouseEvents = new();
-    private readonly Queue<KeyEvent> _keyEvents = new();
+    private readonly ConcurrentQueue<MouseEvent> _mouseEvents = new();
+    private readonly ConcurrentQueue<KeyEvent> _keyEvents = new();
 
     private void Awake()
     {
@@ -98,38 +99,23 @@ public class WindowsHacker : NonsensicalMono
             return;
         }
 
-        while (_mouseEvents.Count > 0)
+        while (_mouseEvents.TryDequeue(out var mouseEvent))
         {
-            Publish(WindowsEvent.MouseEvent, _mouseEvents.Dequeue());
+            Publish(WindowsEvent.MouseEvent, mouseEvent);
         }
 
-        while (_keyEvents.Count > 0)
+        while (_keyEvents.TryDequeue(out var keyEvent))
         {
-            var keyEvent = _keyEvents.Dequeue();
             if (keyEvent.KeyboardMessage == HookKeyboardMessage.WM_KEYDOWN)
             {
-                switch (keyEvent.Key)
+                if (TryHandleGlobalHotkey(keyEvent.Key))
                 {
-                    case VirtualKeys.F6:
-                        Publish(PianoEvent.ChangePianoKeyState);
-                        return;
-                    case VirtualKeys.F7:
-                        Publish(MidiMusicEvent.ChangeMidiMusicState);
-                        return;
-                    case VirtualKeys.F8:
-                        Publish(MidiMusicEvent.ChangeMidiMusicSample);
-                        return;
-                    case VirtualKeys.F9:
-                        Publish(Live2DEvent.ChangedLive2DState);
-                        return;
-                    case VirtualKeys.F10:
-                        _closeFlag = true;
-                        return;
+                    continue;
                 }
 
                 if (_pressedKeys.Add(keyEvent.Key) == false)
                 {
-                    return;
+                    continue;
                 }
             }
             else if (keyEvent.KeyboardMessage == HookKeyboardMessage.WM_KEYUP)
@@ -149,5 +135,29 @@ public class WindowsHacker : NonsensicalMono
     private void OnKeyboardEvent(HookKeyboardMessage message, VirtualKeys key)
     {
         _keyEvents.Enqueue(new KeyEvent(message, key));
+    }
+
+    private bool TryHandleGlobalHotkey(VirtualKeys key)
+    {
+        switch (key)
+        {
+            case VirtualKeys.F6:
+                Publish(PianoEvent.ChangePianoKeyState);
+                return true;
+            case VirtualKeys.F7:
+                Publish(MidiMusicEvent.ChangeMidiMusicState);
+                return true;
+            case VirtualKeys.F8:
+                Publish(MidiMusicEvent.ChangeMidiMusicSample);
+                return true;
+            case VirtualKeys.F9:
+                Publish(Live2DEvent.ChangedLive2DState);
+                return true;
+            case VirtualKeys.F10:
+                _closeFlag = true;
+                return true;
+            default:
+                return false;
+        }
     }
 }

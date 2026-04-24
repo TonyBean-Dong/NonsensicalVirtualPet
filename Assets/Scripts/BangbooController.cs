@@ -25,10 +25,22 @@ public class BangbooController : MonoBehaviour
     [SerializeField] private Blink m_blink;
 
     private bool _touching;
+    private float _touchDistanceSqr;
+
+    private void Awake()
+    {
+        _touchDistanceSqr = m_touchDistance * m_touchDistance;
+    }
 
     private void Update()
     {
-        var touching = Vector3.Distance(m_headPoint.position, m_follow.transform.position) <= m_touchDistance;
+        if (m_headPoint == null || m_follow == null || m_expressionController == null || m_breath == null || m_blink == null)
+        {
+            return;
+        }
+
+        var delta = m_headPoint.position - m_follow.transform.position;
+        var touching = delta.sqrMagnitude <= _touchDistanceSqr;
         if (touching != _touching)
         {
             m_follow.Follow = !touching;

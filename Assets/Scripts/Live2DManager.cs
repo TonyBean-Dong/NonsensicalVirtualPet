@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NonsensicalKit.Core;
 using NonsensicalKit.Windows.Hook;
@@ -20,6 +20,7 @@ public class Live2DManager : NonsensicalMono
     private bool _isDown;
     private bool _checkDown;
     private int _state;
+    private Camera _runtimeCamera;
 
     private void Awake()
     {
@@ -27,6 +28,7 @@ public class Live2DManager : NonsensicalMono
         Subscribe<MouseEvent>(WindowsEvent.MouseEvent, OnMouseEvent);
         IOCC.Register("TrayMenu", GetMenu);
         _state = m_initShow ? 0 : 2;
+        _runtimeCamera = m_camera != null ? m_camera : Camera.main;
     }
 
     private List<(string, int, Action)> GetMenu()
@@ -43,20 +45,13 @@ public class Live2DManager : NonsensicalMono
 
     private void Update()
     {
+        if (_runtimeCamera == null || m_live2D == null || m_model == null) return;
+
         if (_checkDown == true)
         {
             _checkDown = false;
 
-            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-
-            if (hit.transform == null)
-            {
-                _isDown = false;
-            }
-            else
-            {
-                _isDown = hit.transform.name == "Body";
-            }
+            _isDown = IsMouseOnBody();
         }
 
         switch (_state % 3)
@@ -64,20 +59,7 @@ public class Live2DManager : NonsensicalMono
             case 0:
             {
                 //状态0，当鼠标放置到live2d对象上时隐藏对象
-                RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-
-                if (hit.transform == null)
-                {
-                    m_live2D.gameObject.SetActive(true);
-                }
-                else if (hit.transform.name == "Body")
-                {
-                    m_live2D.gameObject.SetActive(false);
-                }
-                else
-                {
-                    m_live2D.gameObject.SetActive(true);
-                }
+                m_live2D.gameObject.SetActive(!IsMouseOnBody());
 
                 break;
             }
@@ -87,7 +69,7 @@ public class Live2DManager : NonsensicalMono
                 m_live2D.gameObject.SetActive(true);
                 if (_isDown == true)
                 {
-                    m_model.transform.position = Vector3.Scale(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector3(1, 1, 0));
+                    m_model.transform.position = Vector3.Scale(_runtimeCamera.ScreenToWorldPoint(Input.mousePosition), new Vector3(1, 1, 0));
                 }
 
                 break;
@@ -104,6 +86,13 @@ public class Live2DManager : NonsensicalMono
     private void ChangedState()
     {
         _state++;
+    }
+
+    private bool IsMouseOnBody()
+    {
+        var worldPosition = _runtimeCamera.ScreenToWorldPoint(Input.mousePosition);
+        var hit = Physics2D.Raycast(worldPosition, Vector2.zero);
+        return hit.transform != null && hit.transform.name == "Body";
     }
 
     private void OnMouseEvent(MouseEvent @event)
